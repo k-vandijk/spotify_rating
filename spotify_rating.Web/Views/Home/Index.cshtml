@@ -1,0 +1,84 @@
+﻿@using System.Text.Json
+@model List<spotify_rating.Web.Models.Record>
+@{
+    ViewData["Title"] = "spotify_rating";
+}
+
+<div class="mode-toggle">
+    <button id="themeToggle">
+        <i id="themeIcon" class="fa-solid"></i> TOGGLE THEME
+    </button>
+</div>
+<div class="container d-flex flex-column align-items-center col-lg-6 col-md-9 col-xs-12">
+    <img id="cover" class="img-fluid mb-4" src="" alt="Album cover" />
+    <div id="trackInfo" class="track-info"></div>
+    <div class="row mt-4 w-100">
+        <div class="col-4 d-grid">
+            <button id="btnYes" class="btn btn-success"><i class="fa-solid fa-thumbs-up"></i></button>
+        </div>
+        <div class="col-4 d-grid">
+            <button id="btnSuper" class="btn btn-primary"><i class="fa-solid fa-heart"></i></button>
+        </div>
+        <div class="col-4 d-grid">
+            <button id="btnNo" class="btn btn-danger"><i class="fa-solid fa-thumbs-down"></i></button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const tracks = @Html.Raw(JsonSerializer.Serialize(Model.OrderBy(x => Guid.NewGuid())));
+        let currentIndex = 0;
+
+        const savedTheme = localStorage.getItem("theme") || "dark";
+        $("body").addClass(savedTheme);
+
+        function renderTrack(index) {
+            const track = tracks[index];
+            $("#cover").attr("src", track.AlbumCoverUrl);
+            $("#trackInfo").text(`${track.TrackName} – ${track.Artist}`);
+        }
+
+        function updateThemeIcon(theme) {
+            const icon = $("#themeIcon");
+            if (theme === "dark") {
+                icon.removeClass().addClass("fa-solid fa-moon");
+            } else {
+                icon.removeClass().addClass("fa-solid fa-sun");
+            }
+        }
+
+        $(document).ready(function () {
+            const savedTheme = localStorage.getItem("theme") || "dark";
+            $("body").addClass(savedTheme);
+            updateThemeIcon(savedTheme);
+
+            renderTrack(currentIndex);
+
+            $("#btnYes").click(function () {
+                console.log("YES: " + tracks[currentIndex].TrackName);
+                currentIndex++;
+                renderTrack(currentIndex);
+            });
+
+            $("#btnSuper").click(function () {
+                console.log("SUPER LIKE: " + tracks[currentIndex].TrackName);
+                currentIndex++;
+                renderTrack(currentIndex);
+            });
+
+            $("#btnNo").click(function () {
+                console.log("NO: " + tracks[currentIndex].TrackName);
+                currentIndex++;
+                renderTrack(currentIndex);
+            });
+
+            $("#themeToggle").click(function () {
+                $("body").toggleClass("dark light");
+                const mode = $("body").hasClass("dark") ? "dark" : "light";
+                localStorage.setItem("theme", mode);
+                updateThemeIcon(mode);
+            });
+        });
+    </script>
+}
