@@ -2,24 +2,66 @@
     ViewData["Title"] = "spotify_rating";
 }
 
-<button id="clearCache" class="btn btn-danger mb-3" onclick="clearCache();">Clear Cache</button>
-<div class="mode-toggle">
-    <button id="themeToggle">
-        <i id="themeIcon" class="fa-solid"></i> TOGGLE THEME
+<!-- Action Buttons Sidebar -->
+<div class="position-absolute top-0 start-0 p-3 d-flex flex-column gap-2 z-3">
+
+    <!-- AI Recommender Button -->
+    <button id="btnAi" class="btn btn-primary btn-sm shadow text-start">
+        <i class="fa-solid fa-robot me-1"></i> AI Recommender
     </button>
+
+    <!-- History Button -->
+    <button id="btnHistory" class="btn btn-secondary btn-sm shadow text-start">
+        <i class="fa-solid fa-clock-rotate-left me-1"></i> Rating History
+    </button>
+
+    <!-- Clear Cache Button -->
+    <button id="btnClearCache" class="btn btn-danger btn-sm shadow text-start">
+        <i class="fa-solid fa-trash me-1"></i> Clear Cache
+    </button>
+
+    <!-- Refresh Tracks -->
+    <button id="btnRefresh" class="btn btn-success btn-sm shadow text-start">
+        <i class="fa-solid fa-arrows-rotate me-1"></i> Refresh Tracks
+    </button>
+
+    <!-- Toggle Theme -->
+    <button id="btnToggleTheme" class="btn btn-dark btn-sm shadow text-start">
+        <i id="themeIcon" class="fa-solid fa-circle-half-stroke me-1"></i> Toggle Theme
+    </button>
+
 </div>
-<div class="container d-flex flex-column align-items-center col-lg-6 col-md-9 col-xs-12">
-    <img id="cover" class="img-fluid mb-4" src="" alt="Album cover" />
-    <div id="trackInfo" class="track-info"></div>
-    <div class="row mt-4 w-100">
-        <div class="col-4 d-grid">
-            <button id="btnYes" class="btn btn-success"><i class="fa-solid fa-thumbs-up"></i></button>
+
+
+<div class="card shadow-lg container p-0 my-5 col-lg-6 col-md-8 col-sm-10 overflow-hidden">
+    <div class="progress" style="height: 6px; border-radius: 0;">
+        <div id="trackProgress" class="progress-bar bg-success" role="progressbar"
+             style="width: 50%;" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100">
         </div>
-        <div class="col-4 d-grid">
-            <button id="btnSuper" class="btn btn-primary"><i class="fa-solid fa-heart"></i></button>
+    </div>
+
+    <div class="p-5">
+        <div class="text-center">
+            <img id="cover" class="img-fluid rounded shadow-sm mb-4" style="max-height: 300px;" src="" alt="Album cover"/>
+            <h5 id="trackInfo" class="fw-semibold text-muted mb-4"></h5>
         </div>
-        <div class="col-4 d-grid">
-            <button id="btnNo" class="btn btn-danger"><i class="fa-solid fa-thumbs-down"></i></button>
+
+        <div class="row gx-3">
+            <div class="col-4 d-grid">
+                <button id="btnYes" class="btn btn-success btn-lg shadow-sm">
+                    <i class="fa-solid fa-thumbs-up"></i>
+                </button>
+            </div>
+            <div class="col-4 d-grid">
+                <button id="btnSuper" class="btn btn-primary btn-lg shadow-sm">
+                    <i class="fa-solid fa-heart"></i>
+                </button>
+            </div>
+            <div class="col-4 d-grid">
+                <button id="btnNo" class="btn btn-danger btn-lg shadow-sm">
+                    <i class="fa-solid fa-thumbs-down"></i>
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -30,6 +72,14 @@
         const themeCacheKey = "theme";
         let currentIndex = 0;
         let tracks = [];
+
+        toastr.options = {
+            timeOut: 2500,
+            hideDuration: 300,
+            showDuration: 300,
+            showEasing: "swing",
+            hideEasing: "linear"
+        };
 
         async function loadTracks() {
             const cached = localStorage.getItem(tracksCacheKey);
@@ -85,10 +135,25 @@
             $("body").addClass(savedTheme);
             updateThemeIcon(savedTheme);
 
-            $("#btnYes, #btnSuper, #btnNo").click(function () {
-                console.log(`${this.id.toUpperCase()}: ${tracks[currentIndex].trackName}`);
+            $("#btnYes").click(function () {
+                const track = tracks[currentIndex];
                 currentIndex++;
                 renderTrack(currentIndex);
+                toastr.success(`You liked "${track.trackName}"!`);
+            });
+
+            $("#btnSuper").click(function () {
+                const track = tracks[currentIndex];
+                currentIndex++;
+                renderTrack(currentIndex);
+                toastr.success(`You **super liked** "${track.trackName}"!`);
+            });
+
+            $("#btnNo").click(function () {
+                const track = tracks[currentIndex];
+                currentIndex++;
+                renderTrack(currentIndex);
+                toastr.success(`You disliked "${track.trackName}".`);
             });
 
             $("#themeToggle").click(function () {
@@ -96,6 +161,18 @@
                 const mode = $("body").hasClass("dark") ? "dark" : "light";
                 localStorage.setItem(themeCacheKey, mode);
                 updateThemeIcon(mode);
+            });
+
+            $("#btnClearCache").click(() => {
+                localStorage.clear();
+                toastr.warning("🧼 Cache cleared.");
+                location.reload();
+            });
+
+            $("#btnRefresh").click(() => {
+                currentIndex = 0;
+                loadTracks();
+                toastr.success("🔄 Refreshed tracks.");
             });
 
             loadTracks();

@@ -1,0 +1,21 @@
+{
+  "name": "spotify_rating.web",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build:sass": "sass --quiet-deps wwwroot/scss/site.scss wwwroot/css/site.css",
+    "watch:sass": "sass --watch --quiet-deps wwwroot/scss/site.scss:wwwroot/css/site.css"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "sass": "^1.89.0"
+  },
+  "dependencies": {
+    "bootstrap": "^5.3.6"
+  }
+}

@@ -1,0 +1,14 @@
+// site.scss
+
+$theme-colors: ( "primary": #00cfe8, // Toastr info blue
+"success": #28c76f, // Toastr green
+"danger": #ea5455, // Toastr error red
+"warning": #ff9f43, // Toastr warning orange
+"info": #00cfe8 // Optional, to distinguish from primary
+);
+
+// Optional: tweak grays or other variables if needed
+$body-bg: #f9f9fb;
+$body-color: #2f2f2f;
+
+@import "../../node_modules/bootstrap/scss/bootstrap";
