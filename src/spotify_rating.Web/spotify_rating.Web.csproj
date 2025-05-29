@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <PackageReference Include="CsvHelper" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.OAuth" />
   </ItemGroup>
 
 </Project>

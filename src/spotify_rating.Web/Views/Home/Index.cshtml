@@ -1,9 +1,8 @@
-﻿@using System.Text.Json
-@model List<spotify_rating.Web.Models.Record>
-@{
+﻿@{
     ViewData["Title"] = "spotify_rating";
 }
 
+<button id="clearCache" class="btn btn-danger mb-3" onclick="clearCache();">Clear Cache</button>
 <div class="mode-toggle">
     <button id="themeToggle">
         <i id="themeIcon" class="fa-solid"></i> TOGGLE THEME
@@ -27,16 +26,45 @@
 
 @section Scripts {
     <script>
-        const tracks = @Html.Raw(JsonSerializer.Serialize(Model.OrderBy(x => Guid.NewGuid())));
+        const tracksCacheKey = "likedTracks";
+        const themeCacheKey = "theme";
         let currentIndex = 0;
+        let tracks = [];
 
-        const savedTheme = localStorage.getItem("theme") || "dark";
-        $("body").addClass(savedTheme);
+        async function loadTracks() {
+            const cached = localStorage.getItem(tracksCacheKey);
+            if (cached) {
+                console.log("Using cached tracks...");
+                tracks = shuffle(JSON.parse(cached));
+                renderTrack(currentIndex);
+                return;
+            }
+
+            console.log("Fetching tracks from server...");
+            const response = await fetch("/api/spotify/liked-tracks");
+            tracks = shuffle(await response.json());
+            localStorage.setItem(tracksCacheKey, JSON.stringify(tracks));
+            renderTrack(currentIndex);
+        }
+
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
 
         function renderTrack(index) {
+            if (!tracks || index >= tracks.length) {
+                $("#cover").attr("src", "");
+                $("#trackInfo").text("No more tracks!");
+                return;
+            }
+
             const track = tracks[index];
-            $("#cover").attr("src", track.AlbumCoverUrl);
-            $("#trackInfo").text(`${track.TrackName} – ${track.Artist}`);
+            $("#cover").attr("src", track.albumCoverUrl);
+            $("#trackInfo").text(`${track.trackName} – ${track.artist}`);
         }
 
         function updateThemeIcon(theme) {
@@ -48,27 +76,17 @@
             }
         }
 
+        function clearCache() {
+            localStorage.removeItem(tracksCacheKey);
+        }
+
         $(document).ready(function () {
-            const savedTheme = localStorage.getItem("theme") || "dark";
+            const savedTheme = localStorage.getItem(themeCacheKey) || "dark";
             $("body").addClass(savedTheme);
             updateThemeIcon(savedTheme);
 
-            renderTrack(currentIndex);
-
-            $("#btnYes").click(function () {
-                console.log("YES: " + tracks[currentIndex].TrackName);
-                currentIndex++;
-                renderTrack(currentIndex);
-            });
-
-            $("#btnSuper").click(function () {
-                console.log("SUPER LIKE: " + tracks[currentIndex].TrackName);
-                currentIndex++;
-                renderTrack(currentIndex);
-            });
-
-            $("#btnNo").click(function () {
-                console.log("NO: " + tracks[currentIndex].TrackName);
+            $("#btnYes, #btnSuper, #btnNo").click(function () {
+                console.log(`${this.id.toUpperCase()}: ${tracks[currentIndex].trackName}`);
                 currentIndex++;
                 renderTrack(currentIndex);
             });
@@ -76,9 +94,11 @@
             $("#themeToggle").click(function () {
                 $("body").toggleClass("dark light");
                 const mode = $("body").hasClass("dark") ? "dark" : "light";
-                localStorage.setItem("theme", mode);
+                localStorage.setItem(themeCacheKey, mode);
                 updateThemeIcon(mode);
             });
+
+            loadTracks();
         });
     </script>
 }

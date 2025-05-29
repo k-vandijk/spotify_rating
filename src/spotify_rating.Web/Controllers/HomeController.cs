@@ -1,28 +1,28 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using spotify_rating.Web.Models;
-using spotify_rating.Web.Utils;
+using spotify_rating.Web.Services;
 
 namespace spotify_rating.Web.Controllers;
 
+[Authorize]
 public class HomeController : Controller
 {
-    private readonly ILogger<HomeController> _logger;
+    private readonly ISpotifyService _spotifyService;
 
-    public HomeController(ILogger<HomeController> logger)
+    public HomeController(ISpotifyService spotifyService)
     {
-        _logger = logger;
+        _spotifyService = spotifyService;
     }
 
-    public IActionResult Index()
+    public async Task<IActionResult> Index()
     {
-        var csvPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "assets", "spotify_tracks_with_covers.csv");
-        var records = CsvLoader.LoadRecords(csvPath);
-
-        return View(records);
+        return View();
     }
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+    [AllowAnonymous]
     public IActionResult Error()
     {
         return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
