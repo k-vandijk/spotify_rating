@@ -8,6 +8,9 @@ public static class ServiceExtensions
     {
         services.AddHttpClient();
 
+        services.AddHttpContextAccessor();
+
+        services.AddScoped<IOpenaiService, OpenaiService>();
         services.AddScoped<ISpotifyService, SpotifyService>();
 
         return services;

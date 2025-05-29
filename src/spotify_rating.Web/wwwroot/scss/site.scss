@@ -1,6 +1,12 @@
 // ----------------------------------------------
-// 1. Bootstrap overrides (before importing Bootstrap)
-$theme-colors: ( "primary": #00cfe8, "success": #28c76f, "danger": #ea5455, "info": #00cfe8, "warning": #ff9f43, "dark": #2f2f2f );
+$theme-colors: ( 
+    "primary": #00cfe8, 
+    "success": #1db954, 
+    "danger": #c13535, // Modern red for dark themes
+    "info": #1db954, // Spotify green reused
+    "warning": #ff9f43, 
+    "dark": #2f2f2f 
+);
 
 // ----------------------------------------------
 // 2. Import Bootstrap
@@ -12,38 +18,14 @@ body.dark {
     background-color: #121212;
     color: #f1f1f1;
 
+    .btn {
+        color: #fff;
+    }
+
     .card {
-        background-color: #1e1e1e;
+        background-color: #212121;
         color: #f1f1f1;
         border: none;
-    }
-
-    .btn {
-        color: #f1f1f1;
-    }
-
-    .btn-primary {
-        background-color: #00cfe8;
-        border-color: #00cfe8;
-    }
-
-    .btn-success {
-        background-color: #28c76f;
-        border-color: #28c76f;
-    }
-
-    .btn-danger {
-        background-color: #ea5455;
-        border-color: #ea5455;
-    }
-
-    .btn-dark {
-        background-color: #2f2f2f;
-        border-color: #2f2f2f;
-    }
-
-    .progress-bar {
-        background-color: #28c76f;
     }
 
     .toast {
@@ -51,20 +33,42 @@ body.dark {
         color: #f1f1f1;
         border: none;
     }
+
+    .list-group-item {
+        background-color: #1e1e1e; // matches Spotify dark style
+        color: #f1f1f1;
+        border-color: #2c2c2c;
+
+        &:hover {
+            background-color: #2a2a2a;
+        }
+    }
+
+    .list-group-item-action:focus,
+    .list-group-item-action:hover {
+        background-color: #2a2a2a;
+        color: #ffffff;
+    }
+
+    .badge.bg-success,
+    .badge.bg-info,
+    .badge.bg-danger {
+        color: #fff;
+    }
 }
 
 body.light {
     background-color: #ffffff;
     color: #212529;
 
+    .btn {
+        color: #000;
+    }
+
     .card {
         background-color: #ffffff;
         color: #212529;
         border: 1px solid #dee2e6;
-    }
-
-    .progress-bar {
-        background-color: #28c76f;
     }
 }
 

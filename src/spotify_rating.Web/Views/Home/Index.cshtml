@@ -1,26 +1,32 @@
-﻿@{
+﻿@model HomeViewModel
+@{
     ViewData["Title"] = "spotify_rating";
 }
 
 <div class="card shadow-lg container p-0 my-5 col-lg-6 col-md-8 col-sm-10 overflow-hidden">
-    <div class="progress" style="height: 6px; border-radius: 0;">
-        <div id="trackProgress" class="progress-bar bg-success" role="progressbar"
-             style="width: 50%;" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100">
+    <div class="position-relative">
+        <div class="progress" style="height: 6px; border-radius: 0;">
+            <div id="trackProgress" class="progress-bar bg-success" role="progressbar"></div>
+        </div>
+        <div class="position-absolute top-100 end-0 mt-1 me-3 small" style="z-index: 1;">
+            <span id="ratedCount">0</span> / <span id="totalCount">0</span>
         </div>
     </div>
 
     <div class="p-5">
-        <div class="text-center position-relative">
-            <div id="loadingSpinner"
-                 class="position-absolute top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center bg-white bg-opacity-75"
-                 style="z-index: 10; display: none;">
-                <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-            </div>
-
+        <div class="text-center position-relative mb-4">
             <img id="cover" class="img-fluid rounded shadow-sm mb-4" style="max-height: 300px;" src="" alt="Album cover" />
-            <h5 id="trackInfo" class="fw-semibold mb-4"></h5>
+
+            <div class="d-flex justify-content-center align-items-center gap-2 mb-3">
+                <h5 id="trackInfo" class="fw-semibold mb-0"></h5>
+                <a id="spotifyLink" href="#" target="_blank" rel="noopener"
+                   class="btn btn-spotify btn-sm rounded-circle shadow-sm d-flex align-items-center justify-content-center"
+                   style="width: 32px; height: 32px;"
+                   title="Open in Spotify">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/8/84/Spotify_icon.svg" alt="Spotify"
+                         style="width: 18px; height: 18px;">
+                </a>
+            </div>
         </div>
 
         <div class="row gx-3">
@@ -45,41 +51,9 @@
 
 @section Scripts {
     <script>
-        const tracksCacheKey = "likedTracks";
-        let currentIndex = 0;
-        let tracks = [];
-
-        async function loadTracks() {
-            $("#loadingSpinner").show();
-
-            try {
-                const cached = localStorage.getItem(tracksCacheKey);
-                if (cached) {
-                    console.log("Using cached tracks...");
-                    tracks = shuffle(JSON.parse(cached));
-                } else {
-                    console.log("Fetching tracks from server...");
-                    const response = await fetch("/api/spotify/liked-tracks");
-                    tracks = shuffle(await response.json());
-                    localStorage.setItem(tracksCacheKey, JSON.stringify(tracks));
-                }
-
-                renderTrack(currentIndex);
-            } catch (err) {
-                toastr.error("Failed to load tracks.");
-                console.error("Track loading error:", err);
-            } finally {
-                $("#loadingSpinner").addClass("d-none");
-            }
-        }
-
-        function shuffle(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-            return array;
-        }
+        let tracks = @Html.Raw(Json.Serialize(Model.Records));
+        let currentTrackIndex = 0;
+        let currentProgressIndex = @Model.RatedRecords;
 
         function renderTrack(index) {
             if (!tracks || index >= tracks.length) {
@@ -90,32 +64,69 @@
 
             const track = tracks[index];
             $("#cover").attr("src", track.albumCoverUrl);
-            $("#trackInfo").text(`${track.trackName} – ${track.artist}`);
+            $("#trackInfo").text(`${track.title} – ${track.artist}`);
+        }
+
+        function rateTrack(trackId, rating) {
+            const url = `/api/records/rate-record?recordId=${encodeURIComponent(trackId)}&rating=${rating}`;
+            return fetch(url, {
+                method: "POST"
+            });
+        }
+
+        function updateProgressBar() {
+            const total = tracks.length;
+            const current = currentProgressIndex + 1;
+            const percentage = Math.min((current / total) * 100, 100);
+
+            $("#trackProgress")
+                .css("width", `${percentage}%`)
+                .attr("aria-valuenow", current);
+
+            $("#totalCount").text(total);
+            $("#ratedCount").text(current);
         }
 
         $(document).ready(function () {
             $("#btnYes").click(function () {
-                const track = tracks[currentIndex];
-                currentIndex++;
-                renderTrack(currentIndex);
-                toastr.success(`You liked "${track.trackName}"!`);
+                const track = tracks[currentTrackIndex];
+                rateTrack(track.id, 0)
+                    .then(() => {
+                        toastr.success(`You liked "${track.title}"!`);
+                        currentTrackIndex++;
+                        renderTrack(currentTrackIndex);
+                        currentProgressIndex++;
+                        updateProgressBar();
+                    })
+                    .catch(err => toastr.error("Failed to like the track."));
             });
 
             $("#btnSuper").click(function () {
-                const track = tracks[currentIndex];
-                currentIndex++;
-                renderTrack(currentIndex);
-                toastr.success(`You **super liked** "${track.trackName}"!`);
+                const track = tracks[currentTrackIndex];
+                rateTrack(track.id, 1)
+                    .then(() => toastr.success(`You super liked "${track.title}"!`))
+                    .catch(err => toastr.error("Failed to super like the track."));
+
+                currentTrackIndex++;
+                renderTrack(currentTrackIndex);
+                currentProgressIndex++;
+                updateProgressBar();
             });
 
             $("#btnNo").click(function () {
-                const track = tracks[currentIndex];
-                currentIndex++;
-                renderTrack(currentIndex);
-                toastr.success(`You disliked "${track.trackName}".`);
+                const track = tracks[currentTrackIndex];
+                  rateTrack(track.id, 2)
+                    .then(() => toastr.success(`You disliked "${track.title}"!`))
+                    .catch(err => toastr.error("Failed to dislike the track."));
+
+                currentTrackIndex++;
+                renderTrack(currentTrackIndex);
+                currentProgressIndex++;
+                updateProgressBar();
             });
 
-            loadTracks();
+            renderTrack(currentTrackIndex);
+            updateProgressBar();
         });
     </script>
 }

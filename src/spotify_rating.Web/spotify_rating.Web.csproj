@@ -3,6 +3,8 @@
   <ItemGroup>
     <PackageReference Include="CsvHelper" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.OAuth" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" />
   </ItemGroup>
 
 </Project>

@@ -1,4 +1,4 @@
-namespace spotify_rating.Web.Models
+namespace spotify_rating.Web.Entities
 {
     public class ErrorViewModel
     {

@@ -1,12 +1,12 @@
-﻿using spotify_rating.Web.Models;
-using System.Net.Http.Headers;
+﻿using System.Net.Http.Headers;
 using System.Text.Json;
+using spotify_rating.Web.Entities;
 
 namespace spotify_rating.Web.Services;
 
 public interface ISpotifyService
 {
-    Task<List<Record>> GetLikedTracksAsync(string accessToken);
+    Task<List<Record>> GetLikedTracksAsync(string accessToken, string spotifyUserId);
 }
 
 public class SpotifyService : ISpotifyService
@@ -20,7 +20,7 @@ public class SpotifyService : ISpotifyService
         _httpClient = httpClient;
     }
 
-    public async Task<List<Record>> GetLikedTracksAsync(string accessToken)
+    public async Task<List<Record>> GetLikedTracksAsync(string accessToken, string spotifyUserId)
     {
         _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
@@ -30,7 +30,7 @@ public class SpotifyService : ISpotifyService
 
         while (true)
         {
-            var newTracks = await GetBatchAsync(limit, offset);
+            var newTracks = await GetBatchAsync(limit, offset, spotifyUserId);
 
             likedTracks.AddRange(newTracks);
 
@@ -48,7 +48,7 @@ public class SpotifyService : ISpotifyService
         return likedTracks;
     }
 
-    private async Task<List<Record>> GetBatchAsync(int limit, int offset)
+    private async Task<List<Record>> GetBatchAsync(int limit, int offset, string spotifyUserId)
     {
         var response = await _httpClient.GetAsync($"https://api.spotify.com/v1/me/tracks?limit={limit}&offset={offset}");
         if (!response.IsSuccessStatusCode)
@@ -67,9 +67,10 @@ public class SpotifyService : ISpotifyService
             var track = item.GetProperty("track");
             likedTracks.Add(new Record
             {
-                TrackName = track.GetProperty("name").GetString(),
+                Title = track.GetProperty("name").GetString(),
                 Artist = track.GetProperty("artists")[0].GetProperty("name").GetString(),
-                AlbumCoverUrl = track.GetProperty("album").GetProperty("images")[0].GetProperty("url").GetString()
+                AlbumCoverUrl = track.GetProperty("album").GetProperty("images")[0].GetProperty("url").GetString(),
+                UserId = spotifyUserId,
             });
         }
 
