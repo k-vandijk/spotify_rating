@@ -43,7 +43,7 @@
     <div class="p-5">
         <div class="text-center">
             <img id="cover" class="img-fluid rounded shadow-sm mb-4" style="max-height: 300px;" src="" alt="Album cover"/>
-            <h5 id="trackInfo" class="fw-semibold text-muted mb-4"></h5>
+            <h5 id="trackInfo" class="fw-semibold mb-4"></h5>
         </div>
 
         <div class="row gx-3">
@@ -156,7 +156,7 @@
                 toastr.success(`You disliked "${track.trackName}".`);
             });
 
-            $("#themeToggle").click(function () {
+            $("#btnToggleTheme").click(function () {
                 $("body").toggleClass("dark light");
                 const mode = $("body").hasClass("dark") ? "dark" : "light";
                 localStorage.setItem(themeCacheKey, mode);
@@ -165,14 +165,14 @@
 
             $("#btnClearCache").click(() => {
                 localStorage.clear();
-                toastr.warning("🧼 Cache cleared.");
+                toastr.warning("Cache cleared.");
                 location.reload();
             });
 
             $("#btnRefresh").click(() => {
                 currentIndex = 0;
                 loadTracks();
-                toastr.success("🔄 Refreshed tracks.");
+                toastr.success("Refreshed tracks.");
             });
 
             loadTracks();

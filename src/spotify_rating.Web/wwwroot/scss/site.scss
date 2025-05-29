@@ -1,14 +1,92 @@
-// site.scss
+// ----------------------------------------------
+// 1. Bootstrap overrides (before importing Bootstrap)
+$theme-colors: ( "primary": #00cfe8, "success": #28c76f, "danger": #ea5455, "info": #00cfe8, "warning": #ff9f43, "dark": #2f2f2f );
 
-$theme-colors: ( "primary": #00cfe8, // Toastr info blue
-"success": #28c76f, // Toastr green
-"danger": #ea5455, // Toastr error red
-"warning": #ff9f43, // Toastr warning orange
-"info": #00cfe8 // Optional, to distinguish from primary
-);
+// ----------------------------------------------
+// 2. Import Bootstrap
+@import "../../node_modules/bootstrap/scss/bootstrap";
 
-// Optional: tweak grays or other variables if needed
-$body-bg: #f9f9fb;
-$body-color: #2f2f2f;
+// ----------------------------------------------
+// 3. Theme: Dark & Light Mode
+body.dark {
+    background-color: #121212;
+    color: #f1f1f1;
+
+    .card {
+        background-color: #1e1e1e;
+        color: #f1f1f1;
+        border: none;
+    }
+
+    .btn {
+        color: #f1f1f1;
+    }
+
+    .btn-primary {
+        background-color: #00cfe8;
+        border-color: #00cfe8;
+    }
+
+    .btn-success {
+        background-color: #28c76f;
+        border-color: #28c76f;
+    }
+
+    .btn-danger {
+        background-color: #ea5455;
+        border-color: #ea5455;
+    }
+
+    .btn-dark {
+        background-color: #2f2f2f;
+        border-color: #2f2f2f;
+    }
+
+    .progress-bar {
+        background-color: #28c76f;
+    }
+
+    .toast {
+        background-color: #1e1e1e;
+        color: #f1f1f1;
+        border: none;
+    }
+}
+
+body.light {
+    background-color: #ffffff;
+    color: #212529;
+
+    .card {
+        background-color: #ffffff;
+        color: #212529;
+        border: 1px solid #dee2e6;
+    }
+
+    .progress-bar {
+        background-color: #28c76f;
+    }
+}
+
+// ----------------------------------------------
+// 4. Utility customizations
+.card {
+    border-radius: 1rem;
+}
+
+.btn {
+    border-radius: 0.4rem;
+}
+
+.progress {
+    border-radius: 0;
+    height: 6px;
+}
+
+.toast {
+    border-radius: 0.4rem;
+    font-size: 0.9rem;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
 
 @import "../../node_modules/bootstrap/scss/bootstrap";
