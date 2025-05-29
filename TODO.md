@@ -1,6 +1,3 @@
-﻿- Login via Spotify
-- Resultaten opslaan
-- Completion percentage
-- Historie, en nummers teruggaan
-- AI suggesties met urls naar spotify toe
-- Account - gegevens en authenticatie
+﻿- AI beheerde afspeellijsten van gelikete nummers gegroepeerd op genres met suggesties erdoorheen
+- Analyse en statistieken via combinatie van spotify api en openai
+- Spotify knop werkend maken (evt in-browser player als dat via spotify kan)

@@ -75,7 +75,7 @@
         }
 
         function updateProgressBar() {
-            const total = tracks.length;
+            const total = @Model.TotalRecords;
             const current = currentProgressIndex + 1;
             const percentage = Math.min((current / total) * 100, 100);
 
