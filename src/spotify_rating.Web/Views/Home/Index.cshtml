@@ -2,37 +2,6 @@
     ViewData["Title"] = "spotify_rating";
 }
 
-<!-- Action Buttons Sidebar -->
-<div class="position-absolute top-0 start-0 p-3 d-flex flex-column gap-2 z-3">
-
-    <!-- AI Recommender Button -->
-    <button id="btnAi" class="btn btn-primary btn-sm shadow text-start">
-        <i class="fa-solid fa-robot me-1"></i> AI Recommender
-    </button>
-
-    <!-- History Button -->
-    <button id="btnHistory" class="btn btn-secondary btn-sm shadow text-start">
-        <i class="fa-solid fa-clock-rotate-left me-1"></i> Rating History
-    </button>
-
-    <!-- Clear Cache Button -->
-    <button id="btnClearCache" class="btn btn-danger btn-sm shadow text-start">
-        <i class="fa-solid fa-trash me-1"></i> Clear Cache
-    </button>
-
-    <!-- Refresh Tracks -->
-    <button id="btnRefresh" class="btn btn-success btn-sm shadow text-start">
-        <i class="fa-solid fa-arrows-rotate me-1"></i> Refresh Tracks
-    </button>
-
-    <!-- Toggle Theme -->
-    <button id="btnToggleTheme" class="btn btn-dark btn-sm shadow text-start">
-        <i id="themeIcon" class="fa-solid fa-circle-half-stroke me-1"></i> Toggle Theme
-    </button>
-
-</div>
-
-
 <div class="card shadow-lg container p-0 my-5 col-lg-6 col-md-8 col-sm-10 overflow-hidden">
     <div class="progress" style="height: 6px; border-radius: 0;">
         <div id="trackProgress" class="progress-bar bg-success" role="progressbar"
@@ -41,8 +10,16 @@
     </div>
 
     <div class="p-5">
-        <div class="text-center">
-            <img id="cover" class="img-fluid rounded shadow-sm mb-4" style="max-height: 300px;" src="" alt="Album cover"/>
+        <div class="text-center position-relative">
+            <div id="loadingSpinner"
+                 class="position-absolute top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center bg-white bg-opacity-75"
+                 style="z-index: 10; display: none;">
+                <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+
+            <img id="cover" class="img-fluid rounded shadow-sm mb-4" style="max-height: 300px;" src="" alt="Album cover" />
             <h5 id="trackInfo" class="fw-semibold mb-4"></h5>
         </div>
 
@@ -69,32 +46,31 @@
 @section Scripts {
     <script>
         const tracksCacheKey = "likedTracks";
-        const themeCacheKey = "theme";
         let currentIndex = 0;
         let tracks = [];
 
-        toastr.options = {
-            timeOut: 2500,
-            hideDuration: 300,
-            showDuration: 300,
-            showEasing: "swing",
-            hideEasing: "linear"
-        };
-
         async function loadTracks() {
-            const cached = localStorage.getItem(tracksCacheKey);
-            if (cached) {
-                console.log("Using cached tracks...");
-                tracks = shuffle(JSON.parse(cached));
-                renderTrack(currentIndex);
-                return;
-            }
+            $("#loadingSpinner").show();
 
-            console.log("Fetching tracks from server...");
-            const response = await fetch("/api/spotify/liked-tracks");
-            tracks = shuffle(await response.json());
-            localStorage.setItem(tracksCacheKey, JSON.stringify(tracks));
-            renderTrack(currentIndex);
+            try {
+                const cached = localStorage.getItem(tracksCacheKey);
+                if (cached) {
+                    console.log("Using cached tracks...");
+                    tracks = shuffle(JSON.parse(cached));
+                } else {
+                    console.log("Fetching tracks from server...");
+                    const response = await fetch("/api/spotify/liked-tracks");
+                    tracks = shuffle(await response.json());
+                    localStorage.setItem(tracksCacheKey, JSON.stringify(tracks));
+                }
+
+                renderTrack(currentIndex);
+            } catch (err) {
+                toastr.error("Failed to load tracks.");
+                console.error("Track loading error:", err);
+            } finally {
+                $("#loadingSpinner").addClass("d-none");
+            }
         }
 
         function shuffle(array) {
@@ -117,24 +93,7 @@
             $("#trackInfo").text(`${track.trackName} – ${track.artist}`);
         }
 
-        function updateThemeIcon(theme) {
-            const icon = $("#themeIcon");
-            if (theme === "dark") {
-                icon.removeClass().addClass("fa-solid fa-moon");
-            } else {
-                icon.removeClass().addClass("fa-solid fa-sun");
-            }
-        }
-
-        function clearCache() {
-            localStorage.removeItem(tracksCacheKey);
-        }
-
         $(document).ready(function () {
-            const savedTheme = localStorage.getItem(themeCacheKey) || "dark";
-            $("body").addClass(savedTheme);
-            updateThemeIcon(savedTheme);
-
             $("#btnYes").click(function () {
                 const track = tracks[currentIndex];
                 currentIndex++;
@@ -154,25 +113,6 @@
                 currentIndex++;
                 renderTrack(currentIndex);
                 toastr.success(`You disliked "${track.trackName}".`);
-            });
-
-            $("#btnToggleTheme").click(function () {
-                $("body").toggleClass("dark light");
-                const mode = $("body").hasClass("dark") ? "dark" : "light";
-                localStorage.setItem(themeCacheKey, mode);
-                updateThemeIcon(mode);
-            });
-
-            $("#btnClearCache").click(() => {
-                localStorage.clear();
-                toastr.warning("Cache cleared.");
-                location.reload();
-            });
-
-            $("#btnRefresh").click(() => {
-                currentIndex = 0;
-                loadTracks();
-                toastr.success("Refreshed tracks.");
             });
 
             loadTracks();
