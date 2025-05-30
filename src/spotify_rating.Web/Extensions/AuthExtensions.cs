@@ -30,7 +30,7 @@ public static class AuthExtensions
 
                 options.Scope.Add("user-read-email");
                 options.Scope.Add("user-library-read");
-
+                
                 options.SaveTokens = true;
 
                 options.ClaimActions.MapJsonKey(ClaimTypes.NameIdentifier, "id");

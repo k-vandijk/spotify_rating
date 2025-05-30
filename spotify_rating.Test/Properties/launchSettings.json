@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "spotify_rating.Test": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:56383;http://localhost:56384"
+    }
+  }
+}

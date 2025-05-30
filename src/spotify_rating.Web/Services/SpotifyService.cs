@@ -7,6 +7,8 @@ namespace spotify_rating.Web.Services;
 public interface ISpotifyService
 {
     Task<List<Record>> GetLikedTracksAsync(string accessToken, string spotifyUserId);
+    IEnumerable<Record> GetNewTracksAsync(List<Record> newList, List<Record> oldList);
+    IEnumerable<Record> GetRemovedTracksAsync(List<Record> newList, List<Record> oldList);
 }
 
 public class SpotifyService : ISpotifyService
@@ -46,6 +48,20 @@ public class SpotifyService : ISpotifyService
 
         _logger.LogInformation($"Fetched {likedTracks.Count} liked tracks from Spotify.");
         return likedTracks;
+    }
+
+    public IEnumerable<Record> GetNewTracksAsync(List<Record> newList, List<Record> oldList)
+    {
+        return newList.Where(nlr => !oldList.Any(olr =>
+            string.Equals(nlr.Title, olr.Title, StringComparison.OrdinalIgnoreCase) &&
+            string.Equals(nlr.Artist, olr.Artist, StringComparison.OrdinalIgnoreCase)));
+    }
+
+    public IEnumerable<Record> GetRemovedTracksAsync(List<Record> newList, List<Record> oldList)
+    {
+        return oldList.Where(olr => !newList.Any(nlr =>
+            string.Equals(nlr.Title, olr.Title, StringComparison.OrdinalIgnoreCase) &&
+            string.Equals(nlr.Artist, olr.Artist, StringComparison.OrdinalIgnoreCase)));
     }
 
     private async Task<List<Record>> GetBatchAsync(int limit, int offset, string spotifyUserId)

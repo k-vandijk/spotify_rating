@@ -1,44 +1,114 @@
-﻿using System.Diagnostics;
+﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using spotify_rating.Web.Entities;
 using spotify_rating.Web.Repositories;
 using spotify_rating.Web.ViewModels;
+using System.Diagnostics;
+using System.Security.Claims;
+using spotify_rating.Web.Services;
 
 namespace spotify_rating.Web.Controllers;
 
 [Authorize]
 public class HomeController : Controller
 {
+    private readonly ILogger<HomeController> _logger;
+    private readonly ISpotifyService _spotifyService;
+    private readonly IServiceProvider _serviceProvider;
     private readonly IRecordRepository _recordRepository;
 
-    public HomeController(IRecordRepository recordRepository)
+    public HomeController(ISpotifyService spotifyService, ILogger<HomeController> logger, IServiceProvider serviceProvider, IRecordRepository recotRepository)
     {
-        _recordRepository = recordRepository;
+        _spotifyService = spotifyService;
+        _logger = logger;
+        _serviceProvider = serviceProvider;
+        _recordRepository = recotRepository;
     }
 
     [HttpGet("/")]
     public async Task<IActionResult> Index()
     {
-        var records = await _recordRepository.GetAllAsync();
-        
-        var shuffledRecords = records
+        return View();
+    }
+
+    [HttpGet("/home/data")]
+    public async Task<IActionResult> GetData()
+    {
+        var accessToken = await HttpContext.GetTokenAsync("access_token");
+
+        string? spotifyUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (string.IsNullOrEmpty(accessToken))
+            return Unauthorized("Access token is missing.");
+
+        if (string.IsNullOrEmpty(spotifyUserId))
+            return Unauthorized("Spotify user ID is missing.");
+
+        // Records van spotify en vanuit de database tegelijk ophalen
+        var liveTracksTask = _spotifyService.GetLikedTracksAsync(accessToken, spotifyUserId);
+        var storedTracksTask = _recordRepository.GetAllAsync();
+
+        await Task.WhenAll(liveTracksTask, storedTracksTask);
+
+        var liveTracks = liveTracksTask.Result;
+        var storedTracks = storedTracksTask.Result;
+
+        var shuffledRecords = liveTracks
             .Where(r => r.Rating == null)
             .OrderBy(r => Guid.NewGuid())
             .ToList();
 
-        return View(new HomeViewModel
+        // Op het achtergrond synchroniseren.
+        _ = Task.Run(async () => await SynchronizeTracksAsync(liveTracks, storedTracks.ToList()));
+
+        return Json(new
         {
-            Records = shuffledRecords,
-            TotalRecords = records.Count(),
-            RatedRecords = records.Count() - shuffledRecords.Count()
+            records = shuffledRecords,
+            total = liveTracks.Count,
+            rated = storedTracks.Count(r => r.Rating != null)
         });
     }
 
-    [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-    [AllowAnonymous]
-    public IActionResult Error()
+    private async Task SynchronizeTracksAsync(List<Record> liveTracks, List<Record> storedTracks)
     {
-        return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        using var scope = _serviceProvider.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IRecordRepository>();
+        var spotifyService = scope.ServiceProvider.GetRequiredService<ISpotifyService>();
+
+        try
+        {
+            await AddNewTracksAsync(repository, spotifyService, liveTracks, storedTracks.ToList());
+
+            await DeleteRemovedTracksAsync(repository, spotifyService, liveTracks, storedTracks.ToList());
+        }
+
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error during background sync.");
+        }
+    }
+
+    private static async Task AddNewTracksAsync(IRecordRepository recordRepository, ISpotifyService spotifyService, List<Record> liveTracks, List<Record> storedTracks)
+    {
+        var newTracks = spotifyService.GetNewTracksAsync(liveTracks, storedTracks).ToList();
+        
+        if (newTracks.Any())
+        {
+            await recordRepository.AddRangeAsync(newTracks);
+        }
+    }
+
+    private static async Task DeleteRemovedTracksAsync(IRecordRepository recordRepository, ISpotifyService spotifyService, List<Record> liveTracks, List<Record> storedTracks)
+    {
+        var removedTracks = spotifyService.GetRemovedTracksAsync(liveTracks, storedTracks).ToList();
+        
+        if (removedTracks.Any())
+        {
+            foreach (var track in removedTracks)
+            {
+                await recordRepository.RemoveAsync(track);
+            }
+        }
     }
 }
