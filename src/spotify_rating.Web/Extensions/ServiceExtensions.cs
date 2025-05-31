@@ -1,5 +1,5 @@
-﻿using spotify_rating.Web.Services;
-using spotify_rating.Web.Utils;
+﻿using spotify_rating.Services;
+using spotify_rating.Web.Handlers;
 
 namespace spotify_rating.Web.Extensions;
 
@@ -7,11 +7,7 @@ public static class ServiceExtensions
 {
     public static IServiceCollection AddServices(this IServiceCollection services)
     {
-        //services.AddHttpClient();
-
         services.AddHttpContextAccessor();
-
-        services.AddTransient<SpotifyAuthHandler>();
 
         services.AddScoped<IOpenaiService, OpenaiService>();
         services.AddScoped<ISpotifyService, SpotifyService>();

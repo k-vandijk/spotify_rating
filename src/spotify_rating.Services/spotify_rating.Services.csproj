@@ -1,0 +1,10 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <PackageReference Include="Azure.AI.OpenAI" />
+    <PackageReference Include="Newtonsoft.Json.Schema" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\spotify_rating.Data\spotify_rating.Data.csproj" />
+  </ItemGroup>
+</Project>

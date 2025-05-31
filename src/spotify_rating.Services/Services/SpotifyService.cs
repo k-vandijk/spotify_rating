@@ -1,8 +1,9 @@
 ﻿using System.Net.Http.Headers;
 using System.Text.Json;
+using Microsoft.Extensions.Logging;
 using spotify_rating.Data.Entities;
 
-namespace spotify_rating.Web.Services;
+namespace spotify_rating.Services;
 
 public interface ISpotifyService
 {

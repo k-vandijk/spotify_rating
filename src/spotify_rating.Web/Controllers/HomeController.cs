@@ -1,10 +1,13 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
+using Microsoft.EntityFrameworkCore;
 using spotify_rating.Data.Entities;
+using spotify_rating.Data.Enums;
 using spotify_rating.Data.Repositories;
-using spotify_rating.Web.Services;
+using System.Security.Claims;
+using spotify_rating.Data.Dtos;
+using spotify_rating.Services;
 
 namespace spotify_rating.Web.Controllers;
 
@@ -30,15 +33,15 @@ public class HomeController : Controller
         return View();
     }
 
-    [HttpGet("/home/data")]
+    [HttpGet("/api/home/data")]
     public async Task<IActionResult> GetData()
     {
         var accessToken = await HttpContext.GetTokenAsync("access_token");
 
-        string? spotifyUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
         if (string.IsNullOrEmpty(accessToken))
             return Unauthorized("Access token is missing.");
+
+        string? spotifyUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         if (string.IsNullOrEmpty(spotifyUserId))
             return Unauthorized("Spotify user ID is missing.");
@@ -62,6 +65,37 @@ public class HomeController : Controller
             tracks = shuffledTracks,
             total = liveTracks.Count,
             rated = storedTracks.Count(r => r.Rating != null)
+        });
+    }
+
+    [HttpPost("/api/home/rate-track")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> RateTrack([FromBody] RateTrackDto dto)
+    {
+        if (string.IsNullOrEmpty(dto.SpotifyTrackId))
+            return BadRequest("Invalid track ID.");
+
+        if (!TrackRatingHelper.TryConvertToRating(dto.Rating, out var ratingEnum))
+            return BadRequest("Rating must be 0 (LIKE), 1 (SUPER_LIKE), or 2 (DISLIKE).");
+
+        string? spotifyUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (string.IsNullOrEmpty(spotifyUserId))
+            return Unauthorized("Spotify user ID is missing.");
+
+        var track = await _trackRepository.GetQueryable().FirstOrDefaultAsync(t => t.SpotifyUserId == spotifyUserId && t.SpotifyTrackId == dto.SpotifyTrackId);
+        if (track is null)
+            return NotFound("Track not found.");
+
+        track.Rating = ratingEnum;
+        track.RatedAtUtc = DateTime.UtcNow;
+        await _trackRepository.UpdateAsync(track);
+
+        return Ok(new
+        {
+            Message = "Track rated successfully.",
+            Trackid = dto.SpotifyTrackId,
+            Rating = dto.Rating
         });
     }
 

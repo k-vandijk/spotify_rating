@@ -1,18 +1,19 @@
 ﻿using Azure.AI.OpenAI;
 using Newtonsoft.Json.Schema.Generation;
 using OpenAI.Chat;
-using spotify_rating.Web.ViewModels;
 using System.ClientModel;
 using System.Text;
 using System.Text.Json;
+using spotify_rating.Data.Dtos;
 using spotify_rating.Data.Entities;
 
-namespace spotify_rating.Web.Services;
+namespace spotify_rating.Services;
 
 public interface IOpenaiService
 {
     Task<string> GetChatCompletionAsync(string prompt);
-    Task<AiPlaylistViewModel> GetAiPlaylistByGenreAsync(List<Track> inputTracks, string genre);
+    Task<AiPlaylistDto> GetAiPlaylistAsync(List<Track> inputTracks, string genre = null);
+    Task<AiTrackDto> GetAiTrackAsync(List<Track> inputTracks, string genre = null);
 }
 
 public class OpenaiService : IOpenaiService
@@ -47,17 +48,17 @@ public class OpenaiService : IOpenaiService
         throw new InvalidOperationException("No content returned from OpenAI chat completion.");
     }
 
-    public async Task<AiPlaylistViewModel> GetAiPlaylistByGenreAsync(List<Track> inputTracks, string genre)
+    public async Task<AiPlaylistDto> GetAiPlaylistAsync(List<Track> inputTracks, string? genre)
     {
         JSchemaGenerator generator = new JSchemaGenerator();
         
-        var jsonSchema = generator.Generate(typeof(AiPlaylistViewModel)).ToString();
+        var jsonSchema = generator.Generate(typeof(AiPlaylistDto)).ToString();
 
-        var userPrompt = BuildPromptFromRatedTracks(inputTracks, genre);
+        var userPrompt = BuildPlaylistPrompt(inputTracks, genre);
 
         var chat = new List<ChatMessage>
         {
-            new SystemChatMessage("You are a music recommendation AI. Based on a user's liked tracks, return a playlist of exactly 40 songs in, matching the requested genre."),
+            new SystemChatMessage("You are a music recommendation AI. Based on a user's liked tracks, return a playlist of exactly 40 songs matching the requested genre (if supplied)."),
             new UserChatMessage(userPrompt)
         };
 
@@ -68,7 +69,7 @@ public class OpenaiService : IOpenaiService
                 ResponseFormat = ChatResponseFormat.CreateJsonSchemaFormat("aiPlaylistViewModel", BinaryData.FromString(jsonSchema))
             });
 
-        var result = JsonSerializer.Deserialize<AiPlaylistViewModel>(completion.Content[0].Text, new JsonSerializerOptions
+        var result = JsonSerializer.Deserialize<AiPlaylistDto>(completion.Content[0].Text, new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true
         });
@@ -79,10 +80,15 @@ public class OpenaiService : IOpenaiService
         return result;
     }
 
-    private string BuildPromptFromRatedTracks(List<Track> ratedTracks, string genre)
+    public Task<AiTrackDto> GetAiTrackAsync(List<Track> inputTracks, string? genre)
+    {
+        throw new NotImplementedException();
+    }
+
+    private string BuildPlaylistPrompt(List<Track> ratedTracks, string? genre)
     {
         var sb = new StringBuilder();
-        sb.AppendLine($"I like the following tracks, and I'd like a playlist of 40 tracks in the genre '{genre}':");
+        sb.AppendLine($"I like the following tracks, and I'd like a playlist of 40 tracks in the genre '{genre ?? "'any genre'"}':");
 
         foreach (var track in ratedTracks.OrderBy(rt => Guid.NewGuid()).Take(100))
         {

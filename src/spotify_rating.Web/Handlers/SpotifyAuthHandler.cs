@@ -1,8 +1,8 @@
-﻿using Microsoft.AspNetCore.Authentication;
-using System.Net.Http.Headers;
+﻿using System.Net.Http.Headers;
 using System.Text.Json;
+using Microsoft.AspNetCore.Authentication;
 
-namespace spotify_rating.Web.Utils;
+namespace spotify_rating.Web.Handlers;
 
 public class SpotifyAuthHandler : DelegatingHandler
 {

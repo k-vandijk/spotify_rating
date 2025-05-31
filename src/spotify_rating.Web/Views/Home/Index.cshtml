@@ -1,6 +1,10 @@
-﻿@{
+﻿@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery antiforgery
+@{
     ViewData["Title"] = "spotify_rating";
+    var tokens = antiforgery.GetAndStoreTokens(Context);
 }
+
+<meta name="csrf-token" content="@tokens.RequestToken" />
 
 <div id="pageWrapper" class="position-relative" style="min-height: 100vh;">
     <partial name="_Loading" />
@@ -111,7 +115,7 @@
             }
 
             try {
-                const response = await fetch("/home/data");
+                const response = await fetch("/api/home/data");
                 const data = await response.json();
 
                 // Alleen overschrijven als de data verschilt of niets gecachet is
@@ -164,8 +168,17 @@
         }
 
         function rateTrack(spotifyTrackId, rating) {
-            const url = `/api/tracks/rate-track?spotifyTrackId=${encodeURIComponent(spotifyTrackId)}&rating=${rating}`;
-            return fetch(url, { method: "POST" });
+            const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            const url = `/api/home/rate-track?spotifyTrackId=${encodeURIComponent(spotifyTrackId)}&rating=${rating}`;
+
+            return fetch('/api/home/rate-track', {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "RequestVerificationToken": token
+                },
+                body: JSON.stringify({ spotifyTrackId, rating })
+            });
         }
 
         // Event bindings and initialization

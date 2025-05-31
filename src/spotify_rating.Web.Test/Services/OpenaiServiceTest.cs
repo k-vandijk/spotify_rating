@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Logging.Abstractions;
 using spotify_rating.Data.Entities;
-using spotify_rating.Web.Services;
+using spotify_rating.Services;
 using Xunit;
 
 namespace spotify_rating.Test.Services;
