@@ -2,13 +2,19 @@
 
 public class RecommendationsViewModel
 {
-    public List<MusicRecommendation> Recommendations { get; set; } = new List<MusicRecommendation>();
+    public List<AiPlaylistViewModel> Playlists { get; set; } = new();
 }
 
-public class MusicRecommendation
+public class AiPlaylistViewModel
 {
-    public string Title { get; set; } = string.Empty;
-    public string Artist { get; set; } = string.Empty;
-    public string Genre { get; set; } = string.Empty;
-    public string Reason { get; set; } = string.Empty;
+    public string PlaylistName { get; set; }
+    public string PlaylistDescription { get; set; }
+    public List<AiTrackViewModel> Tracks { get; set; } = new();
+}
+
+public class AiTrackViewModel
+{
+    public string Title { get; set; }
+    public string Artist { get; set; }
+    public string RecommendationReason { get; set; }
 }
