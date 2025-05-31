@@ -1,7 +1,11 @@
-﻿<div class="d-md-none bg-dark text-white px-3 py-2">
+﻿@{
+    var path = Context.Request.Path.ToString().ToLower();
+}
+
+<div class="d-md-none bg-dark text-white px-3 py-2">
     <div class="dropdown w-100">
         <button class="btn btn-dark dropdown-toggle w-100 d-flex justify-content-between align-items-center" type="button" id="mobileMenu" data-bs-toggle="dropdown" aria-expanded="false">
-            Menu
+            @path
         </button>
         <ul class="dropdown-menu w-100 bg-dark border-0 shadow-sm" aria-labelledby="mobileMenu">
             <li>
@@ -19,11 +23,11 @@
                     <i class="fa-solid fa-robot me-2"></i> AI Recommendations
                 </a>
             </li>
-            <li>
+@*             <li>
                 <button id="btnToggleThemeMobile" class="dropdown-item text-white w-100 text-start">
                     <i class="fa-solid fa-circle-half-stroke me-2"></i> Toggle Theme
                 </button>
-            </li>
+            </li> *@
         </ul>
     </div>
 </div>
