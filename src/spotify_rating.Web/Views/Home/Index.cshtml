@@ -2,16 +2,11 @@
     ViewData["Title"] = "spotify_rating";
 }
 
-<!-- Page Wrapper -->
-<div id="pageWrapper" class="position-relative">
-    <div id="loadingOverlay" class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center">
-        <div class="spinner-border text-success" role="status">
-            <span class="visually-hidden">Loading...</span>
-        </div>
-    </div>
+<div id="pageWrapper" class="position-relative" style="min-height: 100vh;">
+    <partial name="_Loading" />
 
     <div id="app" style="display: none;">
-        <div class="card shadow-lg container p-0 my-5 col-lg-6 col-md-8 col-sm-10 overflow-hidden">
+        <div class="card shadow-lg container p-0 my-5 col-xl-6 col-lg-8 col-md-10 col-sm-12 col-12 overflow-hidden">
             <div class="position-relative">
                 <div class="progress" style="height: 6px; border-radius: 0;">
                     <div id="trackProgress" class="progress-bar bg-success" role="progressbar"></div>
@@ -30,8 +25,7 @@
                            class="btn btn-spotify btn-sm rounded-circle shadow-sm d-flex align-items-center justify-content-center"
                            style="width: 32px; height: 32px;"
                            title="Open in Spotify">
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/8/84/Spotify_icon.svg" alt="Spotify"
-                                 style="width: 18px; height: 18px;">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/8/84/Spotify_icon.svg" alt="Spotify" style="width: 18px; height: 18px;">
                         </a>
                     </div>
                 </div>
@@ -56,6 +50,11 @@
             </div>
         </div>
     </div>
+    
+@*     <footer class="text-center mt-5 mb-3">
+        <p class="mb-0">Made by <a href="https://k-vandijk.nl" target="_blank" rel="noopener">Kevin van Dijk</a> &copy; 2025</p>
+        <p class="mb-0">All data remains private, I only store your Spotify user ID.</p>
+    </footer> *@
 </div>
 
 @section Scripts {
@@ -100,23 +99,52 @@
 
         // Data load
         async function loadData() {
+            const cached = loadFromCache();
+            if (cached) {
+                tracks = cached.tracks;
+                total = cached.total;
+                currentProgressIndex = cached.rated;
+
+                renderTrack(currentTrackIndex);
+                updateProgressBar();
+                $("#app").show();
+            }
+
             try {
                 const response = await fetch("/home/data");
                 const data = await response.json();
 
-                tracks = data.tracks;
-                total = data.total;
-                currentProgressIndex = data.rated;
+                // Alleen overschrijven als de data verschilt of niets gecachet is
+                if (!cached || JSON.stringify(data.tracks) !== JSON.stringify(cached.tracks)) {
+                    tracks = data.tracks;
+                    total = data.total;
+                    currentProgressIndex = data.rated;
+                    currentTrackIndex = 0; // opnieuw vanaf het begin van de geladen lijst beginnen
+
+                    if (!$("#app").is(":visible")) {
+                        renderTrack(currentTrackIndex);
+                    }
+
+                    updateProgressBar();
+                    $("#app").show();
+                 
+                    saveToCache(data);
+                }
 
                 $("#loadingOverlay").remove();
-                $("#app").show();
-
-                renderTrack(currentTrackIndex);
-                updateProgressBar();
             } catch (err) {
                 $("#loadingOverlay").html("<p class='text-danger'>Failed to load data.</p>");
                 console.error(err);
             }
+        }
+
+        function saveToCache(data) {
+            localStorage.setItem("cachedTrackData", JSON.stringify(data));
+        }
+
+        function loadFromCache() {
+            const cached = localStorage.getItem("cachedTrackData");
+            return cached ? JSON.parse(cached) : null;
         }
 
         // Track rating and advancement
@@ -140,7 +168,7 @@
             return fetch(url, { method: "POST" });
         }
 
-        // Event bindings
+        // Event bindings and initialization
         $(document).ready(function () {
             $("#btnYes").click(() => handleRating(RATING.LIKE, "You liked"));
             $("#btnSuper").click(() => handleRating(RATING.SUPER_LIKE, "You super liked"));

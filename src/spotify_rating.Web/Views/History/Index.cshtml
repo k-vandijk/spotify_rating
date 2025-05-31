@@ -3,8 +3,7 @@
 @{
     ViewData["Title"] = "spotify_rating";
 }
-
-<div class="card shadow-lg container my-5 col-lg-6 col-md-8 col-sm-10">
+<div class="card shadow-lg container p-0 my-5 col-xl-6 col-lg-8 col-md-10 col-sm-12 col-12">
     <div class="p-5">
         <h3 class="mb-4 text-center">All Tracks</h3>
         <div class="list-group">
@@ -22,7 +21,7 @@
                     }
                     @if (track.Rating == TrackRating.SUPER_LIKE)
                     {
-                        <span class="badge bg-info">@track.Rating.ToString()</span>
+                        <span class="badge bg-primary">@track.Rating.ToString()</span>
                     }
                     @if (track.Rating == TrackRating.DISLIKE)
                     {
