@@ -46,8 +46,8 @@ Bij playlists zal de knop staan om ze op te slaan op hun spotify account.
                                         
 @section Scripts {
     <script>
-        const songCount = 5;
-        const playlistCount = 3;
+        const songCount = 1;
+        const playlistCount = 1;
         let fetchedSongs = 0;
         let fetchedPlaylists = 0;
 
@@ -60,9 +60,9 @@ Bij playlists zal de knop staan om ze op te slaan op hun spotify account.
                 await fetchSong();
             }
 
-            // while (fetchedPlaylists < playlistCount) {
-            //     await fetchPlaylist();
-            // }
+            while (fetchedPlaylists < playlistCount) {
+                await fetchPlaylist();
+            }
         }
 
         async function fetchSong() {
@@ -118,7 +118,7 @@ Bij playlists zal de knop staan om ze op te slaan op hun spotify account.
                     <div class="card h-100 shadow-sm hover-shadow-sm">
                         <div class="card-body">
                             <h6 class="card-title mb-1">${playlist.title}</h6>
-                            <p class="card-text text-muted small mb-2">${playlist.description}</p>
+                            <p class="card-text small mb-2">${playlist.description}</p>
                             <span class="badge bg-secondary">${playlist.genre}</span>
                         </div>
                     </div>

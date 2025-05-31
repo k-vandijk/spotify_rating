@@ -1,0 +1,39 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AiPlaylistDto",
+  "type": "object",
+  "properties": {
+    "playlistName": {
+      "type": "string",
+      "description": "The name of the generated playlist."
+    },
+    "playlistDescription": {
+      "type": "string",
+      "description": "A short description of the playlist content or mood."
+    },
+    "tracks": {
+      "type": "array",
+      "description": "A list of tracks included in the playlist.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "The title of the track."
+          },
+          "artist": {
+            "type": "string",
+            "description": "The artist who performed the track."
+          },
+          "genre": {
+            "type": "string",
+            "description": "The musical genre of the track."
+          }
+        },
+        "required": [ "title", "artist", "genre" ]
+      },
+      "minItems": 1
+    }
+  },
+  "required": [ "playlistName", "playlistDescription", "tracks" ]
+}

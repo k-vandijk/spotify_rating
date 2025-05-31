@@ -49,32 +49,35 @@ public class RecommendationsController : Controller
         return Ok(track);
     }
 
-    //[HttpGet("/api/recommendations/playlist")]
-    //public async Task<IActionResult> GetPlaylistRecommendation()
-    //{
-    //    var userTracks = await _trackRepository.GetAllAsync();
+    [HttpGet("/api/recommendations/playlist")]
+    public async Task<IActionResult> GetPlaylistRecommendation()
+    {
+        var userTracks = await _trackRepository.GetAllAsync();
 
-    //    var completion = await _openaiService.GetAiPlaylistAsync(userTracks.ToList());
+        string jsonSchema = System.IO.File.ReadAllText("Schemas/aiPlaylistDto.json");
 
-    //    List<Track> sugggestedTracks = new();
-        
-    //    foreach (var track in completion.Tracks)
-    //    {
-    //        var spotifyTrack = await _spotifyService.GetTrackByTitleAndArtistAsync(User.FindFirstValue("access_token"), track.Title, track.Artist, track.Genre);
-            
-    //        if (spotifyTrack != null)
-    //        {
-    //            sugggestedTracks.Add(spotifyTrack);
-    //        }
-    //    }
+        var completion = await _openaiService.GetAiPlaylistAsync(jsonSchema, userTracks.ToList());
 
-    //    // save playlist recommendation to database
+        List<Track> sugggestedTracks = new();
 
-    //    return Ok(new
-    //    {
-    //        PlaylistName = completion.PlaylistName,
-    //        PlaylistDescription = completion.PlaylistDescription,
-    //        Tracks = sugggestedTracks
-    //    });
-    //}
+        foreach (var track in completion.Tracks)
+        {
+            var spotifyTrack = await _spotifyService.GetTrackByTitleAndArtistAsync(User.FindFirstValue("access_token"), track.Title, track.Artist, track.Genre);
+
+            if (spotifyTrack != null)
+            {
+                sugggestedTracks.Add(spotifyTrack);
+            }
+        }
+
+        // save playlist recommendation to database
+
+        return Ok(new
+        {
+            id = Guid.NewGuid(),
+            title = completion.PlaylistName,
+            description = completion.PlaylistDescription,
+            tracks = sugggestedTracks
+        });
+    }
 }

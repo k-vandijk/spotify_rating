@@ -11,7 +11,7 @@ namespace spotify_rating.Services;
 public interface IOpenaiService
 {
     Task<string> GetChatCompletionAsync(string prompt);
-    //Task<AiPlaylistDto> GetAiPlaylistAsync(List<Track> inputTracks, string genre = null);
+    Task<AiPlaylistDto> GetAiPlaylistAsync(string jsonSchema, List<Track> inputTracks, string genre = null);
     Task<AiTrackDto> GetAiTrackAsync(string jsonSchema, List<Track> inputTracks, string genre = null);
 }
 
@@ -47,37 +47,33 @@ public class OpenaiService : IOpenaiService
         throw new InvalidOperationException("No content returned from OpenAI chat completion.");
     }
 
-    //public async Task<AiPlaylistDto> GetAiPlaylistAsync(List<Track> inputTracks, string? genre)
-    //{
-    //    JSchemaGenerator generator = new JSchemaGenerator();
-        
-    //    var jsonSchema = generator.Generate(typeof(AiPlaylistDto)).ToString();
+    public async Task<AiPlaylistDto> GetAiPlaylistAsync(string jsonSchema, List<Track> inputTracks, string? genre)
+    {
+        var userPrompt = BuildPlaylistPrompt(inputTracks, genre);
 
-    //    var userPrompt = BuildPlaylistPrompt(inputTracks, genre);
+        var chat = new List<ChatMessage>
+        {
+            new SystemChatMessage("You are a music recommendation AI. Based on a user's liked tracks, return a playlist of exactly 40 songs matching the requested genre (if supplied)."),
+            new UserChatMessage(userPrompt)
+        };
 
-    //    var chat = new List<ChatMessage>
-    //    {
-    //        new SystemChatMessage("You are a music recommendation AI. Based on a user's liked tracks, return a playlist of exactly 40 songs matching the requested genre (if supplied)."),
-    //        new UserChatMessage(userPrompt)
-    //    };
+        ChatCompletion completion = await _chatClient.CompleteChatAsync(
+            chat,
+            new ChatCompletionOptions
+            {
+                ResponseFormat = ChatResponseFormat.CreateJsonSchemaFormat("aiPlaylistDto", BinaryData.FromString(jsonSchema))
+            });
 
-    //    ChatCompletion completion = await _chatClient.CompleteChatAsync(
-    //        chat,
-    //        new ChatCompletionOptions
-    //        {
-    //            ResponseFormat = ChatResponseFormat.CreateJsonSchemaFormat("aiPlaylistDto", BinaryData.FromString(jsonSchema))
-    //        });
+        var result = JsonSerializer.Deserialize<AiPlaylistDto>(completion.Content[0].Text, new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        });
 
-    //    var result = JsonSerializer.Deserialize<AiPlaylistDto>(completion.Content[0].Text, new JsonSerializerOptions
-    //    {
-    //        PropertyNameCaseInsensitive = true
-    //    });
+        if (result == null)
+            throw new Exception("Failed to deserialize playlist result.");
 
-    //    if (result == null)
-    //        throw new Exception("Failed to deserialize playlist result.");
-
-    //    return result;
-    //}
+        return result;
+    }
 
     public async Task<AiTrackDto> GetAiTrackAsync(string jsonSchema, List<Track> inputTracks, string? genre)
     {
@@ -111,6 +107,8 @@ public class OpenaiService : IOpenaiService
     {
         var sb = new StringBuilder();
         sb.AppendLine($"I like the following tracks, and I'd like a playlist of 40 tracks in the genre '{genre ?? "'any applicable genre'"}':");
+        sb.Append("All songs in the playlist must be from the same genre, the playlist must be genre-based.");
+        sb.AppendLine("It must consist partially of songs from my list, and partially of newly suggested songs. Say 50/50");
 
         foreach (var track in ratedTracks.OrderBy(rt => Guid.NewGuid()).Take(100))
         {

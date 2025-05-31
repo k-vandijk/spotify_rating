@@ -11,8 +11,4 @@
     <ProjectReference Include="..\spotify_rating.Services\spotify_rating.Services.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Schemas\" />
-  </ItemGroup>
-
 </Project>
