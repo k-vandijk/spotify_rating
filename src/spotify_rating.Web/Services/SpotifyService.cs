@@ -85,8 +85,10 @@ public class SpotifyService : ISpotifyService
             {
                 Title = track.GetProperty("name").GetString(),
                 Artist = track.GetProperty("artists")[0].GetProperty("name").GetString(),
-                AlbumCoverUrl = track.GetProperty("album").GetProperty("images")[0].GetProperty("url").GetString(),
-                UserId = spotifyUserId,
+                SpotifyAlbumCoverUrl = track.GetProperty("album").GetProperty("images")[0].GetProperty("url").GetString(),
+                SpotifyUserId = spotifyUserId,
+                SpotifyTrackId = track.GetProperty("id").GetString(),
+                SpotifyUri = track.GetProperty("uri").GetString(),
             });
         }
 

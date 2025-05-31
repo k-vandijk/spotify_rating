@@ -1,13 +1,5 @@
 ﻿$(document).ready(function () {
 
-    //toastr.options = {
-    //    timeOut: 2500,
-    //    hideDuration: 300,
-    //    showDuration: 300,
-    //    showEasing: "swing",
-    //    hideEasing: "linear"
-    //};
-
     const themeCacheKey = "theme";
 
     const savedTheme = localStorage.getItem(themeCacheKey) || "dark";
@@ -29,4 +21,5 @@
             icon.removeClass().addClass("fa-solid fa-sun");
         }
     }
+
 });

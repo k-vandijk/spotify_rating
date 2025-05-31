@@ -1,4 +1,5 @@
-﻿@{
+﻿@using spotify_rating.Web.Enums
+@{
     ViewData["Title"] = "spotify_rating";
 }
 
@@ -80,19 +81,20 @@
             }
 
             const track = tracks[index];
-            $("#cover").attr("src", track.albumCoverUrl);
+            $("#cover").attr("src", track.spotifyAlbumCoverUrl);
             $("#trackInfo").text(`${track.title} – ${track.artist}`);
+            $("#spotifyLink").attr("href", track.spotifyUri);
         }
 
-        function rateTrack(trackId, rating) {
-            const url = `/api/records/rate-record?recordId=${encodeURIComponent(trackId)}&rating=${rating}`;
+        function rateTrack(spotifyTrackId, rating) {
+            const url = `/api/records/rate-record?spotifyTrackId=${encodeURIComponent(spotifyTrackId)}&rating=${rating}`;
             return fetch(url, {
                 method: "POST"
             });
         }
 
         function updateProgressBar() {
-            const current = currentProgressIndex + 1;
+            const current = currentProgressIndex;
             const percentage = Math.min((current / total) * 100, 100);
 
             $("#trackProgress")
@@ -127,7 +129,7 @@
 
             $("#btnYes").click(function () {
                 const track = tracks[currentTrackIndex];
-                rateTrack(track.id, 0)
+                rateTrack(track.spotifyTrackId, 0)
                     .then(() => {
                         toastr.success(`You liked "${track.title}"!`);
                         currentTrackIndex++;
@@ -140,7 +142,7 @@
 
             $("#btnSuper").click(function () {
                 const track = tracks[currentTrackIndex];
-                rateTrack(track.id, 1)
+                rateTrack(track.spotifyTrackId, 1)
                     .then(() => toastr.success(`You super liked "${track.title}"!`))
                     .catch(err => toastr.error("Failed to super like the track."));
 
@@ -152,7 +154,7 @@
 
             $("#btnNo").click(function () {
                 const track = tracks[currentTrackIndex];
-                  rateTrack(track.id, 2)
+                  rateTrack(track.spotifyTrackId, 2)
                     .then(() => toastr.success(`You disliked "${track.title}"!`))
                     .catch(err => toastr.error("Failed to dislike the track."));
 

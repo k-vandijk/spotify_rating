@@ -3,8 +3,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using spotify_rating.Web.Entities;
 using spotify_rating.Web.Repositories;
-using spotify_rating.Web.ViewModels;
-using System.Diagnostics;
 using System.Security.Claims;
 using spotify_rating.Web.Services;
 
@@ -54,10 +52,7 @@ public class HomeController : Controller
         var liveTracks = liveTracksTask.Result;
         var storedTracks = storedTracksTask.Result;
 
-        var shuffledRecords = liveTracks
-            .Where(r => r.Rating == null)
-            .OrderBy(r => Guid.NewGuid())
-            .ToList();
+        var shuffledRecords = GetShuffledRecords(liveTracks);
 
         // Op het achtergrond synchroniseren.
         _ = Task.Run(async () => await SynchronizeTracksAsync(liveTracks, storedTracks.ToList()));
@@ -110,5 +105,13 @@ public class HomeController : Controller
                 await recordRepository.RemoveAsync(track);
             }
         }
+    }
+        
+    private List<Record> GetShuffledRecords(IEnumerable<Record> records)
+    {
+        return records
+            .Where(r => r.Rating == null)
+            .OrderBy(r => Guid.NewGuid())
+            .ToList();
     }
 }

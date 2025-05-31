@@ -1,10 +1,9 @@
-﻿using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using spotify_rating.Web.Enums;
 using spotify_rating.Web.Repositories;
-using spotify_rating.Web.Services;
 using System.Security.Claims;
+using Microsoft.EntityFrameworkCore;
 
 namespace spotify_rating.Web.Controllers;
 
@@ -19,15 +18,20 @@ public class RecordsController : Controller
     }
 
     [HttpPost("/api/records/rate-record")]
-    public async Task<IActionResult> RateRecord(Guid recordId, int rating)
+    public async Task<IActionResult> RateRecord(string spotifyTrackId, int rating)
     {
-        if (recordId == Guid.Empty)
-            return BadRequest("Invalid record ID.");
+        if (string.IsNullOrEmpty(spotifyTrackId))
+            return BadRequest("Invalid track ID.");
 
         if (!RecordRatingHelper.TryConvertToRating(rating, out var ratingEnum))
             return BadRequest("Rating must be 0 (LIKE), 1 (SUPER_LIKE), or 2 (DISLIKE).");
 
-        var record = await _recordRepository.GetByIdAsync(recordId);
+        string? spotifyUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (string.IsNullOrEmpty(spotifyUserId))
+            return Unauthorized("Spotify user ID is missing.");
+
+        var record = await _recordRepository.GetQueryable().FirstOrDefaultAsync(t => t.SpotifyUserId == spotifyUserId && t.SpotifyTrackId == spotifyTrackId);
         if (record is null)
             return NotFound("Record not found.");
 
@@ -37,8 +41,8 @@ public class RecordsController : Controller
 
         return Ok(new
         {
-            Message = "Record rated successfully.",
-            RecordId = recordId,
+            Message = "Track rated successfully.",
+            RecordId = spotifyTrackId,
             Rating = rating
         });
     }

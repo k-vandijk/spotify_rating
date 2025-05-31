@@ -1,23 +1,36 @@
-﻿<div class="position-absolute top-0 start-0 p-3 d-flex flex-column gap-2 z-3">
-    
-    <!-- Go Home -->
-    <a href="/" class="btn btn-success btn-sm shadow text-start">
-        <i class="fa-solid fa-house me-1"></i> Home
-    </a>
-    
-    <!-- History -->
-    <a href="/history" class="btn btn-success btn-sm shadow text-start">
-        <i class="fa-solid fa-clock-rotate-left me-1"></i> Rating History
-    </a>
+﻿@{
+    var path = Context.Request.Path.ToString().ToLower();
+}
 
-    <!-- AI Recommender -->
-    <a href="/recommendations" id="btnAi" class="btn btn-success btn-sm shadow text-start">
-        <i class="fa-solid fa-robot me-1"></i> AI Recommendations
-    </a>
+<div class="sidebar d-flex flex-column flex-shrink-0 p-3 min-vh-100" style="width: 280px;">
+    <ul class="nav nav-pills flex-column mb-auto">
 
-    <!-- Toggle Theme -->
-    <button id="btnToggleTheme" class="btn btn-success btn-sm shadow text-start">
-        <i id="themeIcon" class="fa-solid fa-circle-half-stroke me-1"></i> Toggle Theme
-    </button>
+        <!-- Home -->
+        <li class="nav-item">
+            <a href="/" class="nav-link @(path == "/" ? "active" : "")">
+                <i class="fa-solid fa-house me-1"></i> Home
+            </a>
+        </li>
 
+        <!-- Rating History -->
+        <li class="nav-item">
+            <a href="/history" class="nav-link @(path.StartsWith("/history") ? "active" : "")">
+                <i class="fa-solid fa-clock-rotate-left me-1"></i> Rating History
+            </a>
+        </li>
+
+        <!-- Recommendations -->
+        <li class="nav-item">
+            <a href="/recommendations" class="nav-link @(path.StartsWith("/recommendations") ? "active" : "")">
+                <i class="fa-solid fa-robot me-1"></i> AI Recommendations
+            </a>
+        </li>
+
+        <!-- Theme Toggle (non-navigational) -->
+        <li class="nav-item">
+            <button id="btnToggleTheme" class="nav-link">
+                <i id="themeIcon" class="fa-solid fa-circle-half-stroke me-1"></i>> Toggle Theme
+            </button>
+        </li>
+    </ul>
 </div>

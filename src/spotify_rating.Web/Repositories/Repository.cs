@@ -27,12 +27,12 @@ public class Repository<TEntity> : IRepository<TEntity> where TEntity : BaseEnti
 
     public async Task<IEnumerable<TEntity>> GetAllAsync()
     {
-        return await _dbSet.ToListAsync();
+        return await _dbSet.Where(x => x.Active).ToListAsync();
     }
 
     public async Task<TEntity?> GetByIdAsync(Guid id)
     {
-        return await _dbSet.FirstOrDefaultAsync(x => x.Id == id);
+        return await _dbSet.FirstOrDefaultAsync(x => x.Active && x.Id == id);
     }
 
     public async Task AddAsync(TEntity entity)
@@ -56,12 +56,14 @@ public class Repository<TEntity> : IRepository<TEntity> where TEntity : BaseEnti
 
     public async Task RemoveAsync(TEntity entity)
     {
-        _dbSet.Remove(entity);
+        entity.Active = false;
+        entity.UpdatedAtUtc = DateTime.UtcNow;
+        _dbSet.Update(entity);
         await _context.SaveChangesAsync();
     }
 
     public IQueryable<TEntity> GetQueryable()
     {
-        return _dbSet.AsQueryable();
+        return _dbSet.Where(x => x.Active).AsQueryable();
     }
 }

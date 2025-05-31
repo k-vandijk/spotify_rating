@@ -23,6 +23,6 @@ public class RecordRepository : Repository<Record>, IRecordRepository
         if (string.IsNullOrEmpty(spotifyUserId))
             return [];
 
-        return await _dbSet.Where(r => r.UserId == spotifyUserId).ToListAsync();
+        return await _dbSet.Where(r => r.SpotifyUserId == spotifyUserId).ToListAsync();
     }
 }
