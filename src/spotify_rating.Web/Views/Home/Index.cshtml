@@ -2,63 +2,60 @@
     ViewData["Title"] = "spotify_rating";
 }
 
-<!-- Loading Spinner Overlay -->
-<div id="loadingOverlay" style="
-    position: fixed;
-    z-index: 9999;
-    background: rgba(255,255,255,0.85);
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;">
-    <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">Loading...</span>
-    </div>
-</div>
-
-
-<!-- Main App UI (hidden until data is loaded) -->
-<div id="app" style="display: none;">
-    <div class="card shadow-lg container p-0 my-5 col-lg-6 col-md-8 col-sm-10 overflow-hidden">
-        <div class="position-relative">
-            <div class="progress" style="height: 6px; border-radius: 0;">
-                <div id="trackProgress" class="progress-bar bg-success" role="progressbar"></div>
-            </div>
-            <div class="position-absolute top-100 end-0 mt-1 me-3 small" style="z-index: 1;">
-                <span id="ratedCount">0</span> / <span id="totalCount">0</span>
-            </div>
+<!-- Page Wrapper -->
+<div id="pageWrapper" class="position-relative">
+    <!-- Loading Spinner Overlay (covers only #pageWrapper) -->
+    <div id="loadingOverlay" class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" style="
+        z-index: 9999;
+        background: rgba(255,255,255,0.85);">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
         </div>
+    </div>
 
-        <div class="p-5">
-            <div class="text-center position-relative mb-4">
-                <img id="cover" class="img-fluid rounded shadow-sm mb-4" style="max-height: 300px;" src="" alt="Album cover" />
-                <div class="d-flex justify-content-center align-items-center gap-2 mb-3">
-                    <h5 id="trackInfo" class="fw-semibold mb-0"></h5>
-                    <a id="spotifyLink" href="#" target="_blank" rel="noopener"
-                       class="btn btn-spotify btn-sm rounded-circle shadow-sm d-flex align-items-center justify-content-center"
-                       style="width: 32px; height: 32px;"
-                       title="Open in Spotify">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/8/84/Spotify_icon.svg" alt="Spotify"
-                             style="width: 18px; height: 18px;">
-                    </a>
+    <!-- Main App UI (hidden until data is loaded) -->
+    <div id="app" style="display: none;">
+        <div class="card shadow-lg container p-0 my-5 col-lg-6 col-md-8 col-sm-10 overflow-hidden">
+            <div class="position-relative">
+                <div class="progress" style="height: 6px; border-radius: 0;">
+                    <div id="trackProgress" class="progress-bar bg-success" role="progressbar"></div>
+                </div>
+                <div class="position-absolute top-100 end-0 mt-1 me-3 small" style="z-index: 1;">
+                    <span id="ratedCount">0</span> / <span id="totalCount">0</span>
                 </div>
             </div>
 
-            <div class="row gx-3">
-                <div class="col-4 d-grid">
-                    <button id="btnYes" class="btn btn-success btn-lg shadow-sm">
-                        <i class="fa-solid fa-thumbs-up"></i>
-                    </button>
+            <div class="p-5">
+                <div class="text-center position-relative mb-4">
+                    <img id="cover" class="img-fluid rounded shadow-sm mb-4" style="max-height: 300px;" src="" alt="Album cover" />
+                    <div class="d-flex justify-content-center align-items-center gap-2 mb-3">
+                        <h5 id="trackInfo" class="fw-semibold mb-0"></h5>
+                        <a id="spotifyLink" href="#" target="_blank" rel="noopener"
+                           class="btn btn-spotify btn-sm rounded-circle shadow-sm d-flex align-items-center justify-content-center"
+                           style="width: 32px; height: 32px;"
+                           title="Open in Spotify">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/8/84/Spotify_icon.svg" alt="Spotify"
+                                 style="width: 18px; height: 18px;">
+                        </a>
+                    </div>
                 </div>
-                <div class="col-4 d-grid">
-                    <button id="btnSuper" class="btn btn-primary btn-lg shadow-sm">
-                        <i class="fa-solid fa-heart"></i>
-                    </button>
-                </div>
-                <div class="col-4 d-grid">
-                    <button id="btnNo" class="btn btn-danger btn-lg shadow-sm">
-                        <i class="fa-solid fa-thumbs-down"></i>
-                    </button>
+
+                <div class="row gx-3">
+                    <div class="col-4 d-grid">
+                        <button id="btnYes" class="btn btn-success btn-lg shadow-sm">
+                            <i class="fa-solid fa-thumbs-up"></i>
+                        </button>
+                    </div>
+                    <div class="col-4 d-grid">
+                        <button id="btnSuper" class="btn btn-primary btn-lg shadow-sm">
+                            <i class="fa-solid fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="col-4 d-grid">
+                        <button id="btnNo" class="btn btn-danger btn-lg shadow-sm">
+                            <i class="fa-solid fa-thumbs-down"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -67,15 +64,24 @@
 
 @section Scripts {
     <script>
+        // Rating Constants
+        const RATING = {
+            LIKE: 0,
+            SUPER_LIKE: 1,
+            DISLIKE: 2
+        };
+
         let tracks = [];
         let currentTrackIndex = 0;
         let currentProgressIndex = 0;
         let total = 0;
 
+        // UI rendering
         function renderTrack(index) {
             if (!tracks || index >= tracks.length) {
                 $("#cover").attr("src", "");
                 $("#trackInfo").text("No more tracks!");
+                $("#spotifyLink").attr("href", "#");
                 return;
             }
 
@@ -85,25 +91,18 @@
             $("#spotifyLink").attr("href", track.spotifyUri);
         }
 
-        function rateTrack(spotifyTrackId, rating) {
-            const url = `/api/records/rate-record?spotifyTrackId=${encodeURIComponent(spotifyTrackId)}&rating=${rating}`;
-            return fetch(url, {
-                method: "POST"
-            });
-        }
-
         function updateProgressBar() {
-            const current = currentProgressIndex;
-            const percentage = Math.min((current / total) * 100, 100);
+            const percentage = Math.min((currentProgressIndex / total) * 100, 100);
 
             $("#trackProgress")
                 .css("width", `${percentage}%`)
-                .attr("aria-valuenow", current);
+                .attr("aria-valuenow", currentProgressIndex);
 
             $("#totalCount").text(total);
-            $("#ratedCount").text(current);
+            $("#ratedCount").text(currentProgressIndex);
         }
 
+        // Data load
         async function loadData() {
             try {
                 const response = await fetch("/home/data");
@@ -124,44 +123,32 @@
             }
         }
 
+        // Track rating and advancement
+        function handleRating(ratingValue, successMessage) {
+            const track = tracks[currentTrackIndex];
+            if (!track) return;
+
+            rateTrack(track.spotifyTrackId, ratingValue)
+                .then(() => {
+                    toastr.success(`${successMessage} "${track.title}"`);
+                    currentTrackIndex++;
+                    currentProgressIndex++;
+                    renderTrack(currentTrackIndex);
+                    updateProgressBar();
+                })
+                .catch(() => toastr.error("Failed to rate the track."));
+        }
+
+        function rateTrack(spotifyTrackId, rating) {
+            const url = `/api/records/rate-record?spotifyTrackId=${encodeURIComponent(spotifyTrackId)}&rating=${rating}`;
+            return fetch(url, { method: "POST" });
+        }
+
+        // Event bindings
         $(document).ready(function () {
-
-            $("#btnYes").click(function () {
-                const track = tracks[currentTrackIndex];
-                rateTrack(track.spotifyTrackId, 0)
-                    .then(() => {
-                        toastr.success(`You liked "${track.title}"!`);
-                        currentTrackIndex++;
-                        renderTrack(currentTrackIndex);
-                        currentProgressIndex++;
-                        updateProgressBar();
-                    })
-                    .catch(err => toastr.error("Failed to like the track."));
-            });
-
-            $("#btnSuper").click(function () {
-                const track = tracks[currentTrackIndex];
-                rateTrack(track.spotifyTrackId, 1)
-                    .then(() => toastr.success(`You super liked "${track.title}"!`))
-                    .catch(err => toastr.error("Failed to super like the track."));
-
-                currentTrackIndex++;
-                renderTrack(currentTrackIndex);
-                currentProgressIndex++;
-                updateProgressBar();
-            });
-
-            $("#btnNo").click(function () {
-                const track = tracks[currentTrackIndex];
-                  rateTrack(track.spotifyTrackId, 2)
-                    .then(() => toastr.success(`You disliked "${track.title}"!`))
-                    .catch(err => toastr.error("Failed to dislike the track."));
-
-                currentTrackIndex++;
-                renderTrack(currentTrackIndex);
-                currentProgressIndex++;
-                updateProgressBar();
-            });
+            $("#btnYes").click(() => handleRating(RATING.LIKE, "You liked"));
+            $("#btnSuper").click(() => handleRating(RATING.SUPER_LIKE, "You super liked"));
+            $("#btnNo").click(() => handleRating(RATING.DISLIKE, "You disliked"));
 
             renderTrack(currentTrackIndex);
             loadData();
