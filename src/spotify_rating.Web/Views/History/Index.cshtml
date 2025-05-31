@@ -1,32 +1,32 @@
-﻿@using spotify_rating.Web.Enums
-@model List<Record>
+﻿@using spotify_rating.Data.Enums
+@model List<Track>
 @{
     ViewData["Title"] = "spotify_rating";
 }
 
 <div class="card shadow-lg container my-5 col-lg-6 col-md-8 col-sm-10">
     <div class="p-5">
-        <h3 class="mb-4 text-center">All Records</h3>
+        <h3 class="mb-4 text-center">All Tracks</h3>
         <div class="list-group">
-            @foreach (var record in Model.OrderByDescending(r => r.RatedAtUtc))
+            @foreach (var track in Model.OrderByDescending(r => r.RatedAtUtc))
             {
                 <div class="list-group-item list-group-item-action d-flex gap-3 py-3 align-items-center">
-                    <img src="@record.SpotifyAlbumCoverUrl" class="rounded shadow-sm" style="width: 64px; height: 64px; object-fit: cover;" alt="Cover" />
+                    <img src="@track.SpotifyAlbumCoverUrl" class="rounded shadow-sm" style="width: 64px; height: 64px; object-fit: cover;" alt="Cover" />
                     <div class="flex-fill">
-                        <div class="fw-semibold">@record.Title</div>
-                        <div>@record.Artist</div>
+                        <div class="fw-semibold">@track.Title</div>
+                        <div>@track.Artist</div>
                     </div>
-                    @if (record.Rating == RecordRating.LIKE)
+                    @if (track.Rating == TrackRating.LIKE)
                     {
-                        <span class="badge bg-success">@record.Rating.ToString()</span>
+                        <span class="badge bg-success">@track.Rating.ToString()</span>
                     }
-                    @if (record.Rating == RecordRating.SUPER_LIKE)
+                    @if (track.Rating == TrackRating.SUPER_LIKE)
                     {
-                        <span class="badge bg-info">@record.Rating.ToString()</span>
+                        <span class="badge bg-info">@track.Rating.ToString()</span>
                     }
-                    @if (record.Rating == RecordRating.DISLIKE)
+                    @if (track.Rating == TrackRating.DISLIKE)
                     {
-                        <span class="badge bg-danger">@record.Rating.ToString()</span>
+                        <span class="badge bg-danger">@track.Rating.ToString()</span>
                     }
                 </div>
             }

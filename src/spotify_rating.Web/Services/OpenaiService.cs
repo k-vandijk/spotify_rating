@@ -1,18 +1,18 @@
 ﻿using Azure.AI.OpenAI;
 using Newtonsoft.Json.Schema.Generation;
 using OpenAI.Chat;
-using spotify_rating.Web.Entities;
 using spotify_rating.Web.ViewModels;
 using System.ClientModel;
 using System.Text;
 using System.Text.Json;
+using spotify_rating.Data.Entities;
 
 namespace spotify_rating.Web.Services;
 
 public interface IOpenaiService
 {
     Task<string> GetChatCompletionAsync(string prompt);
-    Task<AiPlaylistViewModel> GetAiPlaylistByGenreAsync(List<Record> inputRecords, string genre);
+    Task<AiPlaylistViewModel> GetAiPlaylistByGenreAsync(List<Track> inputTracks, string genre);
 }
 
 public class OpenaiService : IOpenaiService
@@ -47,13 +47,13 @@ public class OpenaiService : IOpenaiService
         throw new InvalidOperationException("No content returned from OpenAI chat completion.");
     }
 
-    public async Task<AiPlaylistViewModel> GetAiPlaylistByGenreAsync(List<Record> inputRecords, string genre)
+    public async Task<AiPlaylistViewModel> GetAiPlaylistByGenreAsync(List<Track> inputTracks, string genre)
     {
         JSchemaGenerator generator = new JSchemaGenerator();
         
         var jsonSchema = generator.Generate(typeof(AiPlaylistViewModel)).ToString();
 
-        var userPrompt = BuildPromptFromRatedTracks(inputRecords, genre);
+        var userPrompt = BuildPromptFromRatedTracks(inputTracks, genre);
 
         var chat = new List<ChatMessage>
         {
@@ -79,7 +79,7 @@ public class OpenaiService : IOpenaiService
         return result;
     }
 
-    private string BuildPromptFromRatedTracks(List<Record> ratedTracks, string genre)
+    private string BuildPromptFromRatedTracks(List<Track> ratedTracks, string genre)
     {
         var sb = new StringBuilder();
         sb.AppendLine($"I like the following tracks, and I'd like a playlist of 40 tracks in the genre '{genre}':");

@@ -1,26 +1,26 @@
-﻿namespace spotify_rating.Web.Enums;
+﻿namespace spotify_rating.Data.Enums;
 
-public enum RecordRating
+public enum TrackRating
 {
     LIKE,
     SUPER_LIKE,
     DISLIKE,
 }
 
-public static class RecordRatingHelper
+public static class TrackRatingHelper
 {
-    public static bool TryConvertToRating(int value, out RecordRating rating)
+    public static bool TryConvertToRating(int value, out TrackRating rating)
     {
         switch (value)
         {
             case 0:
-                rating = RecordRating.LIKE;
+                rating = TrackRating.LIKE;
                 return true;
             case 1:
-                rating = RecordRating.SUPER_LIKE;
+                rating = TrackRating.SUPER_LIKE;
                 return true;
             case 2:
-                rating = RecordRating.DISLIKE;
+                rating = TrackRating.DISLIKE;
                 return true;
             default:
                 rating = default;

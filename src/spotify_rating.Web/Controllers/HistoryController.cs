@@ -1,26 +1,26 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using spotify_rating.Web.Repositories;
+using spotify_rating.Data.Repositories;
 
 namespace spotify_rating.Web.Controllers;
 
 [Authorize]
 public class HistoryController : Controller
 {
-    private readonly IRecordRepository _recordRepository;
+    private readonly ITrackRepository _trackRepository;
 
-    public HistoryController(IRecordRepository recordRepository)
+    public HistoryController(ITrackRepository trackRepository)
     {
-        _recordRepository = recordRepository;
+        _trackRepository = trackRepository;
     }
 
     [HttpGet("/history")]
     public async Task<IActionResult> Index()
     {
-        var records = await _recordRepository.GetAllAsync();
+        var tracks = await _trackRepository.GetAllAsync();
 
-        var ratedRecords = records.Where(r => r.Rating != null).ToList();
+        var ratedTracks = tracks.Where(r => r.Rating != null).ToList();
 
-        return View(ratedRecords);
+        return View(ratedTracks);
     }
 }

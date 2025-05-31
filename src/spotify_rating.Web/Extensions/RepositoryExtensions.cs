@@ -1,4 +1,4 @@
-﻿using spotify_rating.Web.Repositories;
+﻿using spotify_rating.Data.Repositories;
 
 namespace spotify_rating.Web.Extensions;
 
@@ -6,7 +6,7 @@ public static class RepositoryExtensions
 {
     public static IServiceCollection AddRepositories(this IServiceCollection services)
     {
-        services.AddScoped<IRecordRepository, RecordRepository>();
+        services.AddScoped<ITrackRepository, TrackRepository>();
 
         return services;
     }

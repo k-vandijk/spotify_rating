@@ -104,7 +104,7 @@
                 const response = await fetch("/home/data");
                 const data = await response.json();
 
-                tracks = data.records;
+                tracks = data.tracks;
                 total = data.total;
                 currentProgressIndex = data.rated;
 
@@ -136,7 +136,7 @@
         }
 
         function rateTrack(spotifyTrackId, rating) {
-            const url = `/api/records/rate-record?spotifyTrackId=${encodeURIComponent(spotifyTrackId)}&rating=${rating}`;
+            const url = `/api/tracks/rate-track?spotifyTrackId=${encodeURIComponent(spotifyTrackId)}&rating=${rating}`;
             return fetch(url, { method: "POST" });
         }
 

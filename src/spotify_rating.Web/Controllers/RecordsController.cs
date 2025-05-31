@@ -1,29 +1,29 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using spotify_rating.Web.Enums;
-using spotify_rating.Web.Repositories;
 using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
+using spotify_rating.Data.Enums;
+using spotify_rating.Data.Repositories;
 
 namespace spotify_rating.Web.Controllers;
 
 [Authorize]
-public class RecordsController : Controller
+public class TracksController : Controller
 {
-    private readonly IRecordRepository _recordRepository;
+    private readonly ITrackRepository _trackRepository;
 
-    public RecordsController(IRecordRepository recordRepository)
+    public TracksController(ITrackRepository trackRepository)
     {
-        _recordRepository = recordRepository;
+        _trackRepository = trackRepository;
     }
 
-    [HttpPost("/api/records/rate-record")]
-    public async Task<IActionResult> RateRecord(string spotifyTrackId, int rating)
+    [HttpPost("/api/tracks/rate-track")]
+    public async Task<IActionResult> RateTrack(string spotifyTrackId, int rating)
     {
         if (string.IsNullOrEmpty(spotifyTrackId))
             return BadRequest("Invalid track ID.");
 
-        if (!RecordRatingHelper.TryConvertToRating(rating, out var ratingEnum))
+        if (!TrackRatingHelper.TryConvertToRating(rating, out var ratingEnum))
             return BadRequest("Rating must be 0 (LIKE), 1 (SUPER_LIKE), or 2 (DISLIKE).");
 
         string? spotifyUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -31,18 +31,18 @@ public class RecordsController : Controller
         if (string.IsNullOrEmpty(spotifyUserId))
             return Unauthorized("Spotify user ID is missing.");
 
-        var record = await _recordRepository.GetQueryable().FirstOrDefaultAsync(t => t.SpotifyUserId == spotifyUserId && t.SpotifyTrackId == spotifyTrackId);
-        if (record is null)
-            return NotFound("Record not found.");
+        var track = await _trackRepository.GetQueryable().FirstOrDefaultAsync(t => t.SpotifyUserId == spotifyUserId && t.SpotifyTrackId == spotifyTrackId);
+        if (track is null)
+            return NotFound("Track not found.");
 
-        record.Rating = ratingEnum;
-        record.RatedAtUtc = DateTime.UtcNow;
-        await _recordRepository.UpdateAsync(record);
+        track.Rating = ratingEnum;
+        track.RatedAtUtc = DateTime.UtcNow;
+        await _trackRepository.UpdateAsync(track);
 
         return Ok(new
         {
             Message = "Track rated successfully.",
-            RecordId = spotifyTrackId,
+            Trackid = spotifyTrackId,
             Rating = rating
         });
     }

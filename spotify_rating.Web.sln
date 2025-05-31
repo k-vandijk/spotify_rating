@@ -17,7 +17,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		TODO.md = TODO.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "spotify_rating.Test", "spotify_rating.Test\spotify_rating.Test.csproj", "{A08D07D6-1A7C-460A-8420-1A9B4C1124F3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "spotify_rating.Web.Test", "src\spotify_rating.Web.Test\spotify_rating.Web.Test.csproj", "{A08D07D6-1A7C-460A-8420-1A9B4C1124F3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "spotify_rating.Data", "src\spotify_rating.Data\spotify_rating.Data.csproj", "{8F6A7D60-1294-4C5B-9693-9769C9FAD847}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{A08D07D6-1A7C-460A-8420-1A9B4C1124F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A08D07D6-1A7C-460A-8420-1A9B4C1124F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A08D07D6-1A7C-460A-8420-1A9B4C1124F3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8F6A7D60-1294-4C5B-9693-9769C9FAD847}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8F6A7D60-1294-4C5B-9693-9769C9FAD847}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8F6A7D60-1294-4C5B-9693-9769C9FAD847}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8F6A7D60-1294-4C5B-9693-9769C9FAD847}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -40,6 +46,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{EF17AF40-79AC-4424-A41C-6733C4B274CC} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{A08D07D6-1A7C-460A-8420-1A9B4C1124F3} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{8F6A7D60-1294-4C5B-9693-9769C9FAD847} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {57DBC9AA-9180-4AFF-B3DA-E99878CA9E07}

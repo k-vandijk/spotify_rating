@@ -1,4 +1,4 @@
-﻿namespace spotify_rating.Web.Entities;
+﻿namespace spotify_rating.Data.Entities;
 
 public abstract class BaseEntity
 {

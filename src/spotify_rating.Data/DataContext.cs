@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using spotify_rating.Web.Entities;
+using spotify_rating.Data.Entities;
 
-namespace spotify_rating.Web;
+namespace spotify_rating.Data;
 
 public class DataContext : DbContext
 {
@@ -9,5 +9,5 @@ public class DataContext : DbContext
     {
     }
 
-    public DbSet<Record> Records { get; set; }
+    public DbSet<Track> Tracks { get; set; }
 }

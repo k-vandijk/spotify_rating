@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging.Abstractions;
+using spotify_rating.Data.Entities;
 using spotify_rating.Web.Services;
 using Xunit;
 
@@ -19,16 +20,16 @@ public class OpenaiServiceTest
     public void GivenTrackIsUnliked_WhenGetRemovedTracksIsCalled_ThenRemovedTrackIsReturned()
     {
         // Arrange
-        var oldList = new List<Web.Entities.Record>
+        var oldList = new List<Track>
         {
-            new Web.Entities.Record { Title = "Song A", Artist = "Artist 1" },
-            new Web.Entities.Record { Title = "Song B", Artist = "Artist 2" }
+            new Track { Title = "Song A", Artist = "Artist 1" },
+            new Track { Title = "Song B", Artist = "Artist 2" }
         };
 
-        var newList = new List<Web.Entities.Record>
+        var newList = new List<Track>
         {
-            new Web.Entities.Record { Title = "Song A", Artist = "Artist 1" },
-            new Web.Entities.Record { Title = "Song C", Artist = "Artist 3" }
+            new Track { Title = "Song A", Artist = "Artist 1" },
+            new Track { Title = "Song C", Artist = "Artist 3" }
         };
 
         // Act
@@ -43,16 +44,16 @@ public class OpenaiServiceTest
     public void GivenTrackIsLiked_WhenGetNewTracksIsCalled_ThenNewTrackIsReturned()
     {
         // Arrange
-        var oldList = new List<Web.Entities.Record>
+        var oldList = new List<Track>
         {
-            new Web.Entities.Record { Title = "Song A", Artist = "Artist 1" },
-            new Web.Entities.Record { Title = "Song B", Artist = "Artist 2" }
+            new Track { Title = "Song A", Artist = "Artist 1" },
+            new Track { Title = "Song B", Artist = "Artist 2" }
         };
 
-        var newList = new List<Web.Entities.Record>
+        var newList = new List<Track>
         {
-            new Web.Entities.Record { Title = "Song A", Artist = "Artist 1" },
-            new Web.Entities.Record { Title = "Song C", Artist = "Artist 3" }
+            new Track { Title = "Song A", Artist = "Artist 1" },
+            new Track { Title = "Song C", Artist = "Artist 3" }
         };
 
         // Act

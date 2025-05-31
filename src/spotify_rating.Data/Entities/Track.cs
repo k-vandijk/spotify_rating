@@ -1,8 +1,8 @@
-﻿using spotify_rating.Web.Enums;
+﻿using spotify_rating.Data.Enums;
 
-namespace spotify_rating.Web.Entities;
+namespace spotify_rating.Data.Entities;
 
-public class Record : BaseEntity
+public class Track : BaseEntity
 {
     public string Title { get; set; }
     public string Artist { get; set; }
@@ -11,6 +11,6 @@ public class Record : BaseEntity
     public string SpotifyTrackId { get; set; }
     public string SpotifyUri { get; set; }
 
-    public RecordRating? Rating { get; set; }
+    public TrackRating? Rating { get; set; }
     public DateTime? RatedAtUtc { get; set; }
 }

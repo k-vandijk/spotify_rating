@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using spotify_rating.Web.Entities;
+using spotify_rating.Data.Entities;
 
-namespace spotify_rating.Web.Repositories;
+namespace spotify_rating.Data.Repositories;
 
 public interface IRepository<TEntity> where TEntity : class
 {

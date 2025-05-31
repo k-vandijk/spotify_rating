@@ -1,14 +1,14 @@
 ﻿using System.Net.Http.Headers;
 using System.Text.Json;
-using spotify_rating.Web.Entities;
+using spotify_rating.Data.Entities;
 
 namespace spotify_rating.Web.Services;
 
 public interface ISpotifyService
 {
-    Task<List<Record>> GetLikedTracksAsync(string accessToken, string spotifyUserId);
-    IEnumerable<Record> GetNewTracksAsync(List<Record> newList, List<Record> oldList);
-    IEnumerable<Record> GetRemovedTracksAsync(List<Record> newList, List<Record> oldList);
+    Task<List<Track>> GetLikedTracksAsync(string accessToken, string spotifyUserId);
+    IEnumerable<Track> GetNewTracksAsync(List<Track> newList, List<Track> oldList);
+    IEnumerable<Track> GetRemovedTracksAsync(List<Track> newList, List<Track> oldList);
 }
 
 public class SpotifyService : ISpotifyService
@@ -22,11 +22,11 @@ public class SpotifyService : ISpotifyService
         _httpClient = httpClient;
     }
 
-    public async Task<List<Record>> GetLikedTracksAsync(string accessToken, string spotifyUserId)
+    public async Task<List<Track>> GetLikedTracksAsync(string accessToken, string spotifyUserId)
     {
         _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
-        var likedTracks = new List<Record>();
+        var likedTracks = new List<Track>();
         var limit = 50;
         var offset = 0;
 
@@ -50,21 +50,21 @@ public class SpotifyService : ISpotifyService
         return likedTracks;
     }
 
-    public IEnumerable<Record> GetNewTracksAsync(List<Record> newList, List<Record> oldList)
+    public IEnumerable<Track> GetNewTracksAsync(List<Track> newList, List<Track> oldList)
     {
         return newList.Where(nlr => !oldList.Any(olr =>
             string.Equals(nlr.Title, olr.Title, StringComparison.OrdinalIgnoreCase) &&
             string.Equals(nlr.Artist, olr.Artist, StringComparison.OrdinalIgnoreCase)));
     }
 
-    public IEnumerable<Record> GetRemovedTracksAsync(List<Record> newList, List<Record> oldList)
+    public IEnumerable<Track> GetRemovedTracksAsync(List<Track> newList, List<Track> oldList)
     {
         return oldList.Where(olr => !newList.Any(nlr =>
             string.Equals(nlr.Title, olr.Title, StringComparison.OrdinalIgnoreCase) &&
             string.Equals(nlr.Artist, olr.Artist, StringComparison.OrdinalIgnoreCase)));
     }
 
-    private async Task<List<Record>> GetBatchAsync(int limit, int offset, string spotifyUserId)
+    private async Task<List<Track>> GetBatchAsync(int limit, int offset, string spotifyUserId)
     {
         var response = await _httpClient.GetAsync($"https://api.spotify.com/v1/me/tracks?limit={limit}&offset={offset}");
         if (!response.IsSuccessStatusCode)
@@ -76,12 +76,12 @@ public class SpotifyService : ISpotifyService
 
         var doc = JsonDocument.Parse(json);
 
-        var likedTracks = new List<Record>();
+        var likedTracks = new List<Track>();
 
         foreach (var item in doc.RootElement.GetProperty("items").EnumerateArray())
         {
             var track = item.GetProperty("track");
-            likedTracks.Add(new Record
+            likedTracks.Add(new Track
             {
                 Title = track.GetProperty("name").GetString(),
                 Artist = track.GetProperty("artists")[0].GetProperty("name").GetString(),

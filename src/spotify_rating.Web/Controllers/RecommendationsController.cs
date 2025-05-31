@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using spotify_rating.Web.Repositories;
+using spotify_rating.Data.Repositories;
 using spotify_rating.Web.Services;
 
 namespace spotify_rating.Web.Controllers;
@@ -9,18 +9,18 @@ namespace spotify_rating.Web.Controllers;
 public class RecommendationsController : Controller
 {
     private readonly IOpenaiService _openaiService;
-    private readonly IRecordRepository _recordRepository;
+    private readonly ITrackRepository _trackRepository;
 
-    public RecommendationsController(IOpenaiService openaiService, IRecordRepository recordRepository)
+    public RecommendationsController(IOpenaiService openaiService, ITrackRepository trackRepository)
     {
         _openaiService = openaiService;
-        _recordRepository = recordRepository;
+        _trackRepository = trackRepository;
     }
 
     [HttpGet("/recommendations")]
     public async Task<IActionResult> Index()
     {
-        var tracks = await _recordRepository.GetAllAsync();
+        var tracks = await _trackRepository.GetAllAsync();
 
         var completion = await _openaiService.GetAiPlaylistByGenreAsync(tracks.ToList(), "metal");
 

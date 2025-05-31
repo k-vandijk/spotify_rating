@@ -1,23 +1,24 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using spotify_rating.Web.Entities;
+using spotify_rating.Data.Entities;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Http;
 
-namespace spotify_rating.Web.Repositories;
+namespace spotify_rating.Data.Repositories;
 
-public interface IRecordRepository : IRepository<Record>
+public interface ITrackRepository : IRepository<Track>
 {
 }
 
-public class RecordRepository : Repository<Record>, IRecordRepository
+public class TrackRepository : Repository<Track>, ITrackRepository
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public RecordRepository(DataContext context, IHttpContextAccessor httpContextAccessor) : base(context)
+    public TrackRepository(DataContext context, IHttpContextAccessor httpContextAccessor) : base(context)
     {
         _httpContextAccessor = httpContextAccessor;
     }
 
-    public new async Task<IEnumerable<Record>> GetAllAsync()
+    public new async Task<IEnumerable<Track>> GetAllAsync()
     {
         string? spotifyUserId = _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrEmpty(spotifyUserId))

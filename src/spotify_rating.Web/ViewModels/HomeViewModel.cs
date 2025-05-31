@@ -1,10 +1,10 @@
-﻿using spotify_rating.Web.Entities;
+﻿using spotify_rating.Data.Entities;
 
 namespace spotify_rating.Web.ViewModels;
 
 public class HomeViewModel
 {
-    public IEnumerable<Record> Records { get; set; }
-    public int TotalRecords;
-    public int RatedRecords;
+    public IEnumerable<Track> Tracks { get; set; }
+    public int TotalTracks;
+    public int RatedTracks;
 }
