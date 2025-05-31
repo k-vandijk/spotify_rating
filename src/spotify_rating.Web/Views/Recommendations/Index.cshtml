@@ -24,35 +24,18 @@ Bij playlists zal de knop staan om ze op te slaan op hun spotify account.
 
         <div class="card shadow-lg container p-0 my-5 col-xl-6 col-lg-8 col-md-10 col-sm-12 col-12">
             <div class="p-5">
-                <h3 class="mb-4 text-center">AI-Powered Music Suggestions</h3>
+                <h3 class="mb-4 text-center">Music Suggestions</h3>
 
                 <div class="mb-5">
                     <h5 class="mb-3">Suggested Songs</h5>
-                    <div class="list-group">
-                        <a href="spotify:track:3xIaUb1WsnrqbJo6CsJMLO" class="list-group-item list-group-item-action d-flex gap-3 py-3 align-items-center text-decoration-none" target="_blank">
-                            <img src="https://i.scdn.co/image/ab67616d0000b273add2474f5952482c05611f6c" class="rounded shadow-sm flex-shrink-0" style="width: 64px; height: 64px; object-fit: cover;" alt="Cover" />
-                            <div class="flex-grow-1">
-                                <div class="fw-semibold">Black - Live MTV Unplugged</div>
-                                <div class="text-muted small">Pearl Jam</div>
-                            </div>
-                            <span class="badge bg-info">Grunge</span>
-                        </a>
+                    <div class="list-group songs-list">
                     </div>
                 </div>
 
                 <div>
                     <h5 class="mb-3">Suggested Playlists</h5>
                     <div class="row g-3">
-                        <div class="col-md-6">
-                            <a href="/recommendations/playlist/D877867A-DA50-435D-1F5F-08DDA063793B" class="text-decoration-none text-dark">
-                                <div class="card h-100 shadow-sm hover-shadow-sm">
-                                    <div class="card-body">
-                                        <h6 class="card-title mb-1">Playlist Title</h6>
-                                        <p class="card-text text-muted small mb-2">Playlist Description</p>
-                                        <span class="badge bg-secondary">Playlist Genre</span>
-                                    </div>
-                                </div>
-                            </a>
+                        <div class="col-md-6 playlists-list">
                         </div>
                     </div>
                 </div>
@@ -63,8 +46,92 @@ Bij playlists zal de knop staan om ze op te slaan op hun spotify account.
                                         
 @section Scripts {
     <script>
+        const songCount = 5;
+        const playlistCount = 3;
+        let fetchedSongs = 0;
+        let fetchedPlaylists = 0;
+
         $(document).ready(function () {
-            $("#app").show();
+            fetchInitialRecommendations();
         });
+
+        async function fetchInitialRecommendations() {
+            while (fetchedSongs < songCount) {
+                await fetchSong();
+            }
+
+            // while (fetchedPlaylists < playlistCount) {
+            //     await fetchPlaylist();
+            // }
+        }
+
+        async function fetchSong() {
+            try {
+                showSmallLoader();
+
+                const response = await fetch("/api/recommendations/song");
+                const song = await response.json();
+
+                addSongToList(song);
+                fetchedSongs++;
+            } catch (error) {
+                console.error("Failed to fetch song:", error);
+            } finally {
+                $("#app").show();
+                hideSmallLoader();
+            }
+        }
+
+        async function fetchPlaylist() {
+            try {
+                showSmallLoader();
+
+                const response = await fetch("/api/recommendations/playlist");
+                const playlist = await response.json();
+
+                addPlaylistToList(playlist);
+                fetchedPlaylists++;
+            } catch (error) {
+                console.error("Failed to fetch playlist:", error);
+            } finally {
+                $("#app").show();
+                hideSmallLoader();
+            }
+        }
+
+        function addSongToList(song) {
+            $(".songs-list").append(`
+                <a href="${song.spotifyUri}" class="list-group-item list-group-item-action d-flex gap-3 py-3 align-items-center text-decoration-none" target="_blank">
+                    <img src="${song.spotifyAlbumCoverUrl}" class="rounded shadow-sm flex-shrink-0" style="width: 64px; height: 64px; object-fit: cover;" alt="Cover" />
+                    <div class="flex-grow-1">
+                        <div class="fw-semibold">${song.title}</div>
+                        <div class="text-muted small">${song.artist}</div>
+                    </div>
+                    <span class="badge bg-info">${song.aiGenre}</span>
+                </a>
+            `);
+        }
+
+        function addPlaylistToList(playlist) {
+            $(".playlists-list").append(`
+                <a href="/recommendations/playlist/${playlist.id}" class="text-decoration-none text-dark">
+                    <div class="card h-100 shadow-sm hover-shadow-sm">
+                        <div class="card-body">
+                            <h6 class="card-title mb-1">${playlist.title}</h6>
+                            <p class="card-text text-muted small mb-2">${playlist.description}</p>
+                            <span class="badge bg-secondary">${playlist.genre}</span>
+                        </div>
+                    </div>
+                </a>
+            `);
+        }
+
+        function showSmallLoader() {
+            // show spinner (e.g. top-right)
+        }
+
+        function hideSmallLoader() {
+            // hide spinner
+        }
     </script>
 }

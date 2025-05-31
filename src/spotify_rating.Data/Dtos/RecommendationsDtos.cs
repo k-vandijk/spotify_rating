@@ -11,5 +11,5 @@ public class AiTrackDto
 {
     public string Title { get; set; }
     public string Artist { get; set; }
-    public string RecommendationReason { get; set; }
+    public string Genre { get; set; }
 }

@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using spotify_rating.Data.Entities;
 using spotify_rating.Data.Repositories;
 using spotify_rating.Services;
 
@@ -10,11 +12,13 @@ public class RecommendationsController : Controller
 {
     private readonly ITrackRepository _trackRepository;
     private readonly IOpenaiService _openaiService;
+    private readonly ISpotifyService _spotifyService;
 
-    public RecommendationsController(ITrackRepository trackRepository, IOpenaiService openaiService)
+    public RecommendationsController(ITrackRepository trackRepository, IOpenaiService openaiService, ISpotifyService spotifyService)
     {
         _trackRepository = trackRepository;
         _openaiService = openaiService;
+        _spotifyService = spotifyService;
     }
 
     [HttpGet("/recommendations")]
@@ -36,20 +40,39 @@ public class RecommendationsController : Controller
 
         var completion = await _openaiService.GetAiTrackAsync(tracks.ToList());
 
-        // save track recommendation to database
+        var track = await _spotifyService.GetTrackByTitleAndArtistAsync(User.FindFirstValue("access_token"), completion.Title, completion.Artist, completion.Genre);
 
-        return Ok(completion);
+        // Save track recommendation to database
+
+        return Ok(track);
     }
 
     [HttpGet("/api/recommendations/playlist")]
     public async Task<IActionResult> GetPlaylistRecommendation()
     {
-        var tracks = await _trackRepository.GetAllAsync();
+        var userTracks = await _trackRepository.GetAllAsync();
 
-        var completion = await _openaiService.GetAiPlaylistAsync(tracks.ToList());
+        var completion = await _openaiService.GetAiPlaylistAsync(userTracks.ToList());
+
+        List<Track> sugggestedTracks = new();
+        
+        foreach (var track in completion.Tracks)
+        {
+            var spotifyTrack = await _spotifyService.GetTrackByTitleAndArtistAsync(User.FindFirstValue("access_token"), track.Title, track.Artist, track.Genre);
+            
+            if (spotifyTrack != null)
+            {
+                sugggestedTracks.Add(spotifyTrack);
+            }
+        }
 
         // save playlist recommendation to database
 
-        return Ok(completion);
+        return Ok(new
+        {
+            PlaylistName = completion.PlaylistName,
+            PlaylistDescription = completion.PlaylistDescription,
+            Tracks = sugggestedTracks
+        });
     }
 }

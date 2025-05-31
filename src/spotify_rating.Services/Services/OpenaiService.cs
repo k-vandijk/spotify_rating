@@ -66,7 +66,7 @@ public class OpenaiService : IOpenaiService
             chat,
             new ChatCompletionOptions
             {
-                ResponseFormat = ChatResponseFormat.CreateJsonSchemaFormat("aiPlaylistViewModel", BinaryData.FromString(jsonSchema))
+                ResponseFormat = ChatResponseFormat.CreateJsonSchemaFormat("aiPlaylistDto", BinaryData.FromString(jsonSchema))
             });
 
         var result = JsonSerializer.Deserialize<AiPlaylistDto>(completion.Content[0].Text, new JsonSerializerOptions
@@ -80,15 +80,42 @@ public class OpenaiService : IOpenaiService
         return result;
     }
 
-    public Task<AiTrackDto> GetAiTrackAsync(List<Track> inputTracks, string? genre)
+    public async Task<AiTrackDto> GetAiTrackAsync(List<Track> inputTracks, string? genre)
     {
-        throw new NotImplementedException();
+        JSchemaGenerator generator = new JSchemaGenerator();
+
+        var jsonSchema = generator.Generate(typeof(AiTrackDto)).ToString();
+
+        var userPrompt = BuildSongPrompt(inputTracks, genre);
+
+        var chat = new List<ChatMessage>
+        {
+            new SystemChatMessage("You are a music recommendation AI. Based on a user's liked tracks, return a track matching the requested genre (if supplied)."),
+            new UserChatMessage(userPrompt)
+        };
+
+        ChatCompletion completion = await _chatClient.CompleteChatAsync(
+            chat,
+            new ChatCompletionOptions
+            {
+                ResponseFormat = ChatResponseFormat.CreateJsonSchemaFormat("aiTrackDto", BinaryData.FromString(jsonSchema))
+            });
+
+        var result = JsonSerializer.Deserialize<AiTrackDto>(completion.Content[0].Text, new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        });
+
+        if (result == null)
+            throw new Exception("Failed to deserialize track result.");
+
+        return result;
     }
 
     private string BuildPlaylistPrompt(List<Track> ratedTracks, string? genre)
     {
         var sb = new StringBuilder();
-        sb.AppendLine($"I like the following tracks, and I'd like a playlist of 40 tracks in the genre '{genre ?? "'any genre'"}':");
+        sb.AppendLine($"I like the following tracks, and I'd like a playlist of 40 tracks in the genre '{genre ?? "'any applicable genre'"}':");
 
         foreach (var track in ratedTracks.OrderBy(rt => Guid.NewGuid()).Take(100))
         {
@@ -96,6 +123,20 @@ public class OpenaiService : IOpenaiService
         }
 
         sb.AppendLine("Please return the playlist as a JSON object conforming to the schema I will provide.");
+        return sb.ToString();
+    }
+
+    private string BuildSongPrompt(List<Track> ratedTracks, string? genre)
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine($"I like the following tracks, and I'd like a song in the genre '{genre ?? "'any applicable genre'"}':");
+
+        foreach (var track in ratedTracks.OrderBy(rt => Guid.NewGuid()).Take(100))
+        {
+            sb.AppendLine($"- \"{track.Title}\" by {track.Artist}");
+        }
+
+        sb.AppendLine("Please return the song as a JSON object conforming to the schema I will provide.");
         return sb.ToString();
     }
 }
