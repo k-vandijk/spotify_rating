@@ -38,7 +38,9 @@ public class RecommendationsController : Controller
     {
         var tracks = await _trackRepository.GetAllAsync();
 
-        var completion = await _openaiService.GetAiTrackAsync(tracks.ToList());
+        string jsonSchema = System.IO.File.ReadAllText("Schemas/aiTrackDto.json");
+
+        var completion = await _openaiService.GetAiTrackAsync(jsonSchema, tracks.ToList());
 
         var track = await _spotifyService.GetTrackByTitleAndArtistAsync(User.FindFirstValue("access_token"), completion.Title, completion.Artist, completion.Genre);
 
@@ -47,32 +49,32 @@ public class RecommendationsController : Controller
         return Ok(track);
     }
 
-    [HttpGet("/api/recommendations/playlist")]
-    public async Task<IActionResult> GetPlaylistRecommendation()
-    {
-        var userTracks = await _trackRepository.GetAllAsync();
+    //[HttpGet("/api/recommendations/playlist")]
+    //public async Task<IActionResult> GetPlaylistRecommendation()
+    //{
+    //    var userTracks = await _trackRepository.GetAllAsync();
 
-        var completion = await _openaiService.GetAiPlaylistAsync(userTracks.ToList());
+    //    var completion = await _openaiService.GetAiPlaylistAsync(userTracks.ToList());
 
-        List<Track> sugggestedTracks = new();
+    //    List<Track> sugggestedTracks = new();
         
-        foreach (var track in completion.Tracks)
-        {
-            var spotifyTrack = await _spotifyService.GetTrackByTitleAndArtistAsync(User.FindFirstValue("access_token"), track.Title, track.Artist, track.Genre);
+    //    foreach (var track in completion.Tracks)
+    //    {
+    //        var spotifyTrack = await _spotifyService.GetTrackByTitleAndArtistAsync(User.FindFirstValue("access_token"), track.Title, track.Artist, track.Genre);
             
-            if (spotifyTrack != null)
-            {
-                sugggestedTracks.Add(spotifyTrack);
-            }
-        }
+    //        if (spotifyTrack != null)
+    //        {
+    //            sugggestedTracks.Add(spotifyTrack);
+    //        }
+    //    }
 
-        // save playlist recommendation to database
+    //    // save playlist recommendation to database
 
-        return Ok(new
-        {
-            PlaylistName = completion.PlaylistName,
-            PlaylistDescription = completion.PlaylistDescription,
-            Tracks = sugggestedTracks
-        });
-    }
+    //    return Ok(new
+    //    {
+    //        PlaylistName = completion.PlaylistName,
+    //        PlaylistDescription = completion.PlaylistDescription,
+    //        Tracks = sugggestedTracks
+    //    });
+    //}
 }

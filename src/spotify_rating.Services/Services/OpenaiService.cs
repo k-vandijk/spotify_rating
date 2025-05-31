@@ -1,19 +1,18 @@
 ﻿using Azure.AI.OpenAI;
-using Newtonsoft.Json.Schema.Generation;
 using OpenAI.Chat;
+using spotify_rating.Data.Dtos;
+using spotify_rating.Data.Entities;
 using System.ClientModel;
 using System.Text;
 using System.Text.Json;
-using spotify_rating.Data.Dtos;
-using spotify_rating.Data.Entities;
 
 namespace spotify_rating.Services;
 
 public interface IOpenaiService
 {
     Task<string> GetChatCompletionAsync(string prompt);
-    Task<AiPlaylistDto> GetAiPlaylistAsync(List<Track> inputTracks, string genre = null);
-    Task<AiTrackDto> GetAiTrackAsync(List<Track> inputTracks, string genre = null);
+    //Task<AiPlaylistDto> GetAiPlaylistAsync(List<Track> inputTracks, string genre = null);
+    Task<AiTrackDto> GetAiTrackAsync(string jsonSchema, List<Track> inputTracks, string genre = null);
 }
 
 public class OpenaiService : IOpenaiService
@@ -48,49 +47,45 @@ public class OpenaiService : IOpenaiService
         throw new InvalidOperationException("No content returned from OpenAI chat completion.");
     }
 
-    public async Task<AiPlaylistDto> GetAiPlaylistAsync(List<Track> inputTracks, string? genre)
-    {
-        JSchemaGenerator generator = new JSchemaGenerator();
+    //public async Task<AiPlaylistDto> GetAiPlaylistAsync(List<Track> inputTracks, string? genre)
+    //{
+    //    JSchemaGenerator generator = new JSchemaGenerator();
         
-        var jsonSchema = generator.Generate(typeof(AiPlaylistDto)).ToString();
+    //    var jsonSchema = generator.Generate(typeof(AiPlaylistDto)).ToString();
 
-        var userPrompt = BuildPlaylistPrompt(inputTracks, genre);
+    //    var userPrompt = BuildPlaylistPrompt(inputTracks, genre);
 
-        var chat = new List<ChatMessage>
-        {
-            new SystemChatMessage("You are a music recommendation AI. Based on a user's liked tracks, return a playlist of exactly 40 songs matching the requested genre (if supplied)."),
-            new UserChatMessage(userPrompt)
-        };
+    //    var chat = new List<ChatMessage>
+    //    {
+    //        new SystemChatMessage("You are a music recommendation AI. Based on a user's liked tracks, return a playlist of exactly 40 songs matching the requested genre (if supplied)."),
+    //        new UserChatMessage(userPrompt)
+    //    };
 
-        ChatCompletion completion = await _chatClient.CompleteChatAsync(
-            chat,
-            new ChatCompletionOptions
-            {
-                ResponseFormat = ChatResponseFormat.CreateJsonSchemaFormat("aiPlaylistDto", BinaryData.FromString(jsonSchema))
-            });
+    //    ChatCompletion completion = await _chatClient.CompleteChatAsync(
+    //        chat,
+    //        new ChatCompletionOptions
+    //        {
+    //            ResponseFormat = ChatResponseFormat.CreateJsonSchemaFormat("aiPlaylistDto", BinaryData.FromString(jsonSchema))
+    //        });
 
-        var result = JsonSerializer.Deserialize<AiPlaylistDto>(completion.Content[0].Text, new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true
-        });
+    //    var result = JsonSerializer.Deserialize<AiPlaylistDto>(completion.Content[0].Text, new JsonSerializerOptions
+    //    {
+    //        PropertyNameCaseInsensitive = true
+    //    });
 
-        if (result == null)
-            throw new Exception("Failed to deserialize playlist result.");
+    //    if (result == null)
+    //        throw new Exception("Failed to deserialize playlist result.");
 
-        return result;
-    }
+    //    return result;
+    //}
 
-    public async Task<AiTrackDto> GetAiTrackAsync(List<Track> inputTracks, string? genre)
+    public async Task<AiTrackDto> GetAiTrackAsync(string jsonSchema, List<Track> inputTracks, string? genre)
     {
-        JSchemaGenerator generator = new JSchemaGenerator();
-
-        var jsonSchema = generator.Generate(typeof(AiTrackDto)).ToString();
-
         var userPrompt = BuildSongPrompt(inputTracks, genre);
 
         var chat = new List<ChatMessage>
         {
-            new SystemChatMessage("You are a music recommendation AI. Based on a user's liked tracks, return a track matching the requested genre (if supplied)."),
+            new SystemChatMessage("You are a music recommendation AI. Based on a user's liked tracks, return a unique track (that's not in the list) matching the requested genre (if supplied)."),
             new UserChatMessage(userPrompt)
         };
 
