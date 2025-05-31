@@ -14,6 +14,13 @@ $theme-colors: (
 
 // ----------------------------------------------
 // 3. Theme: Dark & Light Mode
+
+card {
+    font-family: "Roboto Mono", monospace;
+    font-optical-sizing: auto;
+    font-style: normal;
+}
+
 body.dark {
     background-color: #121212;
     color: #f1f1f1;

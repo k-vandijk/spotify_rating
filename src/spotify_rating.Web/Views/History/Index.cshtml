@@ -1,19 +1,23 @@
-﻿@using spotify_rating.Data.Enums
-@model List<Track>
+﻿@model HistoryViewModel
 @{
     ViewData["Title"] = "spotify_rating";
 }
 <div class="card shadow-lg container p-0 my-5 col-xl-6 col-lg-8 col-md-10 col-sm-12 col-12">
     <div class="p-5">
-        <h3 class="mb-4 text-center">All Tracks</h3>
+        <h3 class="text-center">@Model.Rated / @Model.Total</h3>
+
         <div class="list-group">
-            @foreach (var track in Model.OrderByDescending(r => r.RatedAtUtc))
+            @foreach (var track in Model.Tracks.OrderByDescending(r => r.RatedAtUtc))
             {
-                <div class="list-group-item list-group-item-action d-flex gap-3 py-3 align-items-center">
-                    <img src="@track.SpotifyAlbumCoverUrl" class="rounded shadow-sm" style="width: 64px; height: 64px; object-fit: cover;" alt="Cover" />
-                    <div class="flex-fill">
+                <a class="list-group-item list-group-item-action d-flex gap-3 py-3 align-items-center text-decoration-none" href="@track.SpotifyUri" target="_blank" rel="noopener noreferrer">
+                    <img src="@track.SpotifyAlbumCoverUrl" class="rounded shadow-sm" style="width: 64px; height: 64px; object-fit: cover;" alt="Cover"/>
+                    <div class="flex-grow-1">
                         <div class="fw-semibold">@track.Title</div>
-                        <div>@track.Artist</div>
+                        <div class="small">@track.Artist</div>
+                        <div class="small" title="Rated at">
+                            <i class="fa-regular fa-calendar me-2 text-success"></i>
+                            @track.RatedAtUtc!.Value.ToLocalTime().ToString("dd-MM-yyyy HH:mm")
+                        </div>
                     </div>
                     @if (track.Rating == TrackRating.LIKE)
                     {
@@ -27,7 +31,7 @@
                     {
                         <span class="badge bg-danger">@track.Rating.ToString()</span>
                     }
-                </div>
+                </a>
             }
         </div>
     </div>

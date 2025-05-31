@@ -11666,6 +11666,12 @@ textarea.form-control-lg {
     display: none !important;
   }
 }
+card {
+  font-family: "Roboto Mono", monospace;
+  font-optical-sizing: auto;
+  font-style: normal;
+}
+
 body.dark {
   background-color: #121212;
   color: #f1f1f1;

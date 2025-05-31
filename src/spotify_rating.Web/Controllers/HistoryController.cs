@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using spotify_rating.Data.Repositories;
+using spotify_rating.Web.ViewModels;
 
 namespace spotify_rating.Web.Controllers;
 
@@ -21,6 +22,11 @@ public class HistoryController : Controller
 
         var ratedTracks = tracks.Where(r => r.Rating != null).ToList();
 
-        return View(ratedTracks);
+        return View(new HistoryViewModel
+        {
+            Tracks = ratedTracks.ToList(),
+            Total = tracks.ToList().Count,
+            Rated = ratedTracks.Count
+        });
     }
 }
