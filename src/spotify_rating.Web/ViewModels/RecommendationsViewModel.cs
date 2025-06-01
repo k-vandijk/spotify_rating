@@ -1,9 +1,10 @@
-﻿using spotify_rating.Data.Dtos;
+﻿using spotify_rating.Data.Entities;
 
 namespace spotify_rating.Web.ViewModels;
 
 public class RecommendationsViewModel
 {
-    public List<AiPlaylistDto> Playlists { get; set; } = new();
+    public List<Playlist> Playlists { get; set; }
+    public List<Track> Tracks { get; set; }
 }
 

@@ -1,4 +1,5 @@
-﻿@{
+﻿@model RecommendationsViewModel
+@{
     ViewData["Title"] = "spotify_rating";
 }
 
@@ -29,14 +30,40 @@ Bij playlists zal de knop staan om ze op te slaan op hun spotify account.
                 <div class="mb-5">
                     <h5 class="mb-3">Suggested Songs</h5>
                     <div class="list-group songs-list">
+                        @foreach (var track in Model.Tracks)
+                        {
+                            <a href="@track.SpotifyUri" class="list-group-item list-group-item-action d-flex gap-3 py-3 align-items-center text-decoration-none" target="_blank">
+                                <img src="@track.SpotifyAlbumCoverUrl" class="rounded shadow-sm flex-shrink-0" style="width: 64px; height: 64px; object-fit: cover;" alt="Cover" />
+                                <div class="flex-grow-1">
+                                    <div class="fw-semibold">@track.Title</div>
+                                    <div class="small">@track.Artist</div>
+                                </div>
+                                @if (!string.IsNullOrEmpty(track.AiGenre))
+                                {
+                                    <span class="badge bg-info">@track.AiGenre</span>
+                                }
+                            </a>
+                        }
                     </div>
                 </div>
 
                 <div>
                     <h5 class="mb-3">Suggested Playlists</h5>
-                    <div class="row g-3">
-                        <div class="col-md-6 playlists-list">
-                        </div>
+                    <div class="row g-3 playlists-list">
+                        @foreach (var playlist in Model.Playlists)
+                        {
+                            <div class="col-md-6">
+                                <a href="/recommendations/playlist/@playlist.Id" class="text-decoration-none text-dark">
+                                    <div class="card h-100 shadow-sm hover-shadow-sm">
+                                        <div class="card-body">
+                                            <h6 class="card-title mb-1">@playlist.Name</h6>
+                                            <p class="card-text small mb-2">@playlist.Description</p>
+                                            <span class="badge bg-info">@playlist.Genre</span>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+                        }
                     </div>
                 </div>
             </div>
@@ -46,10 +73,10 @@ Bij playlists zal de knop staan om ze op te slaan op hun spotify account.
                                         
 @section Scripts {
     <script>
-        const songCount = 1;
-        const playlistCount = 1;
-        let fetchedSongs = 0;
-        let fetchedPlaylists = 0;
+        const songCount = 5;
+        const playlistCount = 2;
+        let fetchedSongs = $(".songs-list a").length;
+        let fetchedPlaylists = $(".playlists-list a").length;
 
         $(document).ready(function () {
             fetchInitialRecommendations();
@@ -63,6 +90,8 @@ Bij playlists zal de knop staan om ze op te slaan op hun spotify account.
             while (fetchedPlaylists < playlistCount) {
                 await fetchPlaylist();
             }
+
+            $("#app").show();
         }
 
         async function fetchSong() {

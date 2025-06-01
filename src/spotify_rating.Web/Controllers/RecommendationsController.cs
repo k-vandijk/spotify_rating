@@ -6,6 +6,7 @@ using spotify_rating.Data.Entities;
 using spotify_rating.Data.Repositories;
 using spotify_rating.Services;
 using System.Security.Claims;
+using spotify_rating.Web.ViewModels;
 
 namespace spotify_rating.Web.Controllers;
 
@@ -34,7 +35,21 @@ public class RecommendationsController : Controller
     [HttpGet("/recommendations")]
     public async Task<IActionResult> Index()
     {
-        return View();
+        var userTracks = _userTrackRepository.GetQueryable()
+            .Include(ut => ut.Track)
+            .Where(ut => ut.IsAiSuggestion && !ut.IsDismissed)
+            .ToList();
+
+        var userPlaylists = _userPlaylistRepository.GetQueryable()
+            .Include(up => up.Playlist)
+            .Where(up => up.IsAiSuggestion && !up.IsDismissed)
+            .ToList();
+
+        return View(new RecommendationsViewModel
+        {
+            Tracks = userTracks.Select(ut => ut.Track).ToList(),
+            Playlists = userPlaylists.Select(up => up.Playlist).ToList()
+        });
     }
 
     [HttpGet("/recommendations/playlist/{id:guid}")]
@@ -50,6 +65,11 @@ public class RecommendationsController : Controller
 
         if (string.IsNullOrEmpty(accessToken))
             return Unauthorized("Access token is missing.");
+
+        string? spotifyUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (string.IsNullOrEmpty(spotifyUserId))
+            return Unauthorized("Spotify user ID is missing.");
 
         var userTracks = await _userTrackRepository.GetAllAsync();
 
@@ -73,6 +93,13 @@ public class RecommendationsController : Controller
         {
             await _trackRepository.AddAsync(track);
         }
+
+        await _userTrackRepository.AddAsync(new UserTrack
+        {
+            SpotifyUserId = spotifyUserId,
+            TrackId = track.Id,
+            IsAiSuggestion = true,
+        });
 
         return Ok(track);
     }
@@ -135,7 +162,8 @@ public class RecommendationsController : Controller
         await _userPlaylistRepository.AddAsync(new UserPlaylist
         {
             SpotifyUserId = spotifyUserId,
-            PlaylistId = playlist.Id
+            PlaylistId = playlist.Id,
+            IsAiSuggestion = true
         });
 
         return Ok(playlist);

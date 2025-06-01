@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using spotify_rating.Data;
 
@@ -11,9 +12,11 @@ using spotify_rating.Data;
 namespace spotify_rating.Data.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20250601133212_UserTrackAiSuggestion")]
+    partial class UserTrackAiSuggestion
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -135,15 +138,6 @@ namespace spotify_rating.Data.Migrations
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime?>("DismissedAtUtc")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("IsAiSuggestion")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsDismissed")
-                        .HasColumnType("bit");
-
                     b.Property<Guid>("PlaylistId")
                         .HasColumnType("uniqueidentifier");
 
@@ -155,8 +149,6 @@ namespace spotify_rating.Data.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("PlaylistId");
 
                     b.ToTable("UserPlaylists");
                 });
@@ -176,12 +168,6 @@ namespace spotify_rating.Data.Migrations
                     b.Property<DateTime?>("DismissedAtUtc")
                         .HasColumnType("datetime2");
 
-                    b.Property<bool>("IsAiSuggestion")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsDismissed")
-                        .HasColumnType("bit");
-
                     b.Property<DateTime?>("RatedAtUtc")
                         .HasColumnType("datetime2");
 
@@ -198,22 +184,17 @@ namespace spotify_rating.Data.Migrations
                     b.Property<DateTime>("UpdatedAtUtc")
                         .HasColumnType("datetime2");
 
+                    b.Property<bool>("isAiSuggestion")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("isDismissed")
+                        .HasColumnType("bit");
+
                     b.HasKey("Id");
 
                     b.HasIndex("TrackId");
 
                     b.ToTable("UserTracks");
-                });
-
-            modelBuilder.Entity("spotify_rating.Data.Entities.UserPlaylist", b =>
-                {
-                    b.HasOne("spotify_rating.Data.Entities.Playlist", "Playlist")
-                        .WithMany()
-                        .HasForeignKey("PlaylistId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Playlist");
                 });
 
             modelBuilder.Entity("spotify_rating.Data.Entities.UserTrack", b =>

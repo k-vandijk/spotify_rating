@@ -24,6 +24,6 @@ public class UserPlaylistRepository : Repository<UserPlaylist>, IUserPlaylistRep
         if (string.IsNullOrEmpty(spotifyUserId))
             return [];
 
-        return await _dbSet.Where(r => r.SpotifyUserId == spotifyUserId).ToListAsync();
+        return await _dbSet.Include(up => up.Playlist).Where(r => r.SpotifyUserId == spotifyUserId).ToListAsync();
     }
 }
