@@ -3,13 +3,17 @@
   "title": "AiPlaylistDto",
   "type": "object",
   "properties": {
-    "playlistName": {
+    "name": {
       "type": "string",
       "description": "The name of the generated playlist."
     },
-    "playlistDescription": {
+    "description": {
       "type": "string",
       "description": "A short description of the playlist content or mood."
+    },
+    "genre": {
+      "type": "string",
+      "description": "The genre of the generated playlist."
     },
     "tracks": {
       "type": "array",
@@ -35,5 +39,5 @@
       "minItems": 1
     }
   },
-  "required": [ "playlistName", "playlistDescription", "tracks" ]
+  "required": [ "name", "description", "genre", "tracks" ]
 }

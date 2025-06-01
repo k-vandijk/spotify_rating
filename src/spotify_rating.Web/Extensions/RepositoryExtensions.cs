@@ -7,6 +7,7 @@ public static class RepositoryExtensions
     public static IServiceCollection AddRepositories(this IServiceCollection services)
     {
         services.AddScoped<IPlaylistRepository, PlaylistRepository>();
+        services.AddScoped<IPlaylistTrackRepository, PlaylistTrackRepository>();
         services.AddScoped<ITrackRepository, TrackRepository>();
         services.AddScoped<IUserPlaylistRepository, UserPlaylistRepository>();
         services.AddScoped<IUserTrackRepository, UserTrackRepository>();

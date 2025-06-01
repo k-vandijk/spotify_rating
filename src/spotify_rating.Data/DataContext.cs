@@ -9,7 +9,9 @@ public class DataContext : DbContext
     {
     }
 
-    public DbSet<UserTrack> UserTracks { get; set; }
-    public DbSet<Track> Tracks { get; set; }
     public DbSet<Playlist> Playlists { get; set; }
+    public DbSet<PlaylistTrack> PlaylistTracks { get; set; }
+    public DbSet<Track> Tracks { get; set; }
+    public DbSet<UserPlaylist> UserPlaylists { get; set; }
+    public DbSet<UserTrack> UserTracks { get; set; }
 }

@@ -2,8 +2,7 @@
 
 public class Playlist : BaseEntity
 {
-    public string PlaylistName { get; set; }
-    public string? PlaylistDescription { get; set; }
-    
-    public virtual List<Track> Tracks { get; set; } = new();
+    public string Name { get; set; }
+    public string Description { get; set; }
+    public string Genre { get; set; }
 }

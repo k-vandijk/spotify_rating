@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using spotify_rating.Data;
 
@@ -11,9 +12,11 @@ using spotify_rating.Data;
 namespace spotify_rating.Data.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20250601125642_PlaylistTrack")]
+    partial class PlaylistTrack
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -34,15 +37,10 @@ namespace spotify_rating.Data.Migrations
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Description")
-                        .IsRequired()
+                    b.Property<string>("PlaylistDescription")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Genre")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Name")
+                    b.Property<string>("PlaylistName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -103,6 +101,9 @@ namespace spotify_rating.Data.Migrations
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("datetime2");
 
+                    b.Property<Guid?>("PlaylistId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("SpotifyAlbumCoverUrl")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -123,6 +124,8 @@ namespace spotify_rating.Data.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("PlaylistId");
 
                     b.ToTable("Tracks");
                 });
@@ -194,13 +197,13 @@ namespace spotify_rating.Data.Migrations
             modelBuilder.Entity("spotify_rating.Data.Entities.PlaylistTrack", b =>
                 {
                     b.HasOne("spotify_rating.Data.Entities.Playlist", "Playlist")
-                        .WithMany("Tracks")
+                        .WithMany()
                         .HasForeignKey("PlaylistId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("spotify_rating.Data.Entities.Track", "Track")
-                        .WithMany("Playlists")
+                        .WithMany()
                         .HasForeignKey("TrackId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -208,6 +211,13 @@ namespace spotify_rating.Data.Migrations
                     b.Navigation("Playlist");
 
                     b.Navigation("Track");
+                });
+
+            modelBuilder.Entity("spotify_rating.Data.Entities.Track", b =>
+                {
+                    b.HasOne("spotify_rating.Data.Entities.Playlist", null)
+                        .WithMany("Tracks")
+                        .HasForeignKey("PlaylistId");
                 });
 
             modelBuilder.Entity("spotify_rating.Data.Entities.UserPlaylist", b =>
@@ -235,11 +245,6 @@ namespace spotify_rating.Data.Migrations
             modelBuilder.Entity("spotify_rating.Data.Entities.Playlist", b =>
                 {
                     b.Navigation("Tracks");
-                });
-
-            modelBuilder.Entity("spotify_rating.Data.Entities.Track", b =>
-                {
-                    b.Navigation("Playlists");
                 });
 #pragma warning restore 612, 618
         }
