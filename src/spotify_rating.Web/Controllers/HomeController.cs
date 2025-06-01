@@ -17,14 +17,14 @@ public class HomeController : Controller
     private readonly ILogger<HomeController> _logger;
     private readonly ISpotifyService _spotifyService;
     private readonly IServiceProvider _serviceProvider;
-    private readonly ITrackRepository _trackRepository;
+    private readonly IUserTrackRepository _userTrackRepository;
 
-    public HomeController(ISpotifyService spotifyService, ILogger<HomeController> logger, IServiceProvider serviceProvider, ITrackRepository trackRepository)
+    public HomeController(ISpotifyService spotifyService, ILogger<HomeController> logger, IServiceProvider serviceProvider, IUserTrackRepository userTrackRepository)
     {
         _spotifyService = spotifyService;
         _logger = logger;
         _serviceProvider = serviceProvider;
-        _trackRepository = trackRepository;
+        _userTrackRepository = userTrackRepository;
     }
 
     [HttpGet("/")]
@@ -47,24 +47,55 @@ public class HomeController : Controller
             return Unauthorized("Spotify user ID is missing.");
 
         // Tracks van spotify en vanuit de database tegelijk ophalen
-        var liveTracksTask = _spotifyService.GetLikedTracksAsync(accessToken, spotifyUserId);
-        var storedTracksTask = _trackRepository.GetAllAsync();
+        var liveLikedTracksTask = _spotifyService.GetLikedTracksAsync(accessToken, spotifyUserId);
+        var storedUserTracksTask = _userTrackRepository.GetAllAsync();
 
-        await Task.WhenAll(liveTracksTask, storedTracksTask);
+        await Task.WhenAll(liveLikedTracksTask, storedUserTracksTask);
 
-        var liveTracks = liveTracksTask.Result;
-        var storedTracks = storedTracksTask.Result;
+        var liveLikedTracks = liveLikedTracksTask.Result;
+        var storedUserTracks = storedUserTracksTask.Result;
 
-        var shuffledTracks = GetShuffledTracks(liveTracks);
+        var shuffledTracks = GetShuffledUnratedTracks(liveLikedTracks, storedUserTracks.ToList());
 
-        // Op het achtergrond synchroniseren.
-        _ = Task.Run(async () => await SynchronizeTracksAsync(liveTracks, storedTracks.ToList()));
+        // Synchronize tracks in the background
+        _ = Task.Run(async () =>
+        {
+            using var scope = _serviceProvider.CreateScope();
+            var trackRepository = scope.ServiceProvider.GetRequiredService<ITrackRepository>();
+            var userTrackRepository = scope.ServiceProvider.GetRequiredService<IUserTrackRepository>();
+
+            // 1) Store new spotify tracks to Tracks
+            var storedTracks = await trackRepository.GetAllAsync();
+            var liveLikedTracksThatAreNotStored = liveLikedTracks
+                .Where(lt => storedTracks.All(st => st.SpotifyTrackId != lt.SpotifyTrackId))
+                .ToList();
+
+            if (liveLikedTracksThatAreNotStored.Any())
+            {
+                await trackRepository.AddRangeAsync(liveLikedTracksThatAreNotStored);
+            }
+
+            // 2) Add new user tracks to UserTracks
+            var newUserTracks = liveLikedTracks
+                .Where(lt => storedUserTracks.All(ut => ut.Track.SpotifyTrackId != lt.SpotifyTrackId))
+                .Select(lt => new UserTrack
+                {
+                    SpotifyUserId = spotifyUserId,
+                    Track = lt,
+                })
+                .ToList();
+
+            if (newUserTracks.Any())
+            {
+                await userTrackRepository.AddRangeAsync(newUserTracks);
+            }
+        });
 
         return Json(new
         {
             tracks = shuffledTracks,
-            total = liveTracks.Count,
-            rated = storedTracks.Count(r => r.Rating != null)
+            total = liveLikedTracks.Count,
+            rated = storedUserTracks.Count(r => r.Rating != null)
         });
     }
 
@@ -83,13 +114,13 @@ public class HomeController : Controller
         if (string.IsNullOrEmpty(spotifyUserId))
             return Unauthorized("Spotify user ID is missing.");
 
-        var track = await _trackRepository.GetQueryable().FirstOrDefaultAsync(t => t.SpotifyUserId == spotifyUserId && t.SpotifyTrackId == dto.SpotifyTrackId);
-        if (track is null)
+        var userTrack = await _userTrackRepository.GetQueryable().FirstOrDefaultAsync(ut => ut.SpotifyUserId == spotifyUserId && ut.Track.SpotifyTrackId == dto.SpotifyTrackId);
+        if (userTrack is null)
             return NotFound("Track not found.");
 
-        track.Rating = ratingEnum;
-        track.RatedAtUtc = DateTime.UtcNow;
-        await _trackRepository.UpdateAsync(track);
+        userTrack.Rating = ratingEnum;
+        userTrack.RatedAtUtc = DateTime.UtcNow;
+        await _userTrackRepository.UpdateAsync(userTrack);
 
         return Ok(new
         {
@@ -98,53 +129,11 @@ public class HomeController : Controller
             Rating = dto.Rating
         });
     }
-
-    private async Task SynchronizeTracksAsync(List<Track> liveTracks, List<Track> storedTracks)
-    {
-        using var scope = _serviceProvider.CreateScope();
-        var repository = scope.ServiceProvider.GetRequiredService<ITrackRepository>();
-        var spotifyService = scope.ServiceProvider.GetRequiredService<ISpotifyService>();
-
-        try
-        {
-            await AddNewTracksAsync(repository, spotifyService, liveTracks, storedTracks.ToList());
-
-            await DeleteRemovedTracksAsync(repository, spotifyService, liveTracks, storedTracks.ToList());
-        }
-
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error during background sync.");
-        }
-    }
-
-    private static async Task AddNewTracksAsync(ITrackRepository trackRepository, ISpotifyService spotifyService, List<Track> liveTracks, List<Track> storedTracks)
-    {
-        var newTracks = spotifyService.GetNewTracksAsync(liveTracks, storedTracks).ToList();
         
-        if (newTracks.Any())
-        {
-            await trackRepository.AddRangeAsync(newTracks);
-        }
-    }
-
-    private static async Task DeleteRemovedTracksAsync(ITrackRepository trackRepository, ISpotifyService spotifyService, List<Track> liveTracks, List<Track> storedTracks)
+    private static List<Track> GetShuffledUnratedTracks(List<Track> liveTracks, List<UserTrack> userTracks)
     {
-        var removedTracks = spotifyService.GetRemovedTracksAsync(liveTracks, storedTracks).ToList();
-        
-        if (removedTracks.Any())
-        {
-            foreach (var track in removedTracks)
-            {
-                await trackRepository.RemoveAsync(track);
-            }
-        }
-    }
-        
-    private List<Track> GetShuffledTracks(IEnumerable<Track> tracks)
-    {
-        return tracks
-            .Where(r => r.Rating == null)
+        return liveTracks
+            .Where(lt => !userTracks.Any(ut => ut.Track.SpotifyTrackId == lt.SpotifyTrackId && ut.Rating != null))
             .OrderBy(r => Guid.NewGuid())
             .ToList();
     }

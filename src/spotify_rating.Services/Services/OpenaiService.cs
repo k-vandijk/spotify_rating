@@ -11,8 +11,8 @@ namespace spotify_rating.Services;
 public interface IOpenaiService
 {
     Task<string> GetChatCompletionAsync(string prompt);
-    Task<AiPlaylistDto> GetAiPlaylistAsync(string jsonSchema, List<Track> inputTracks, string genre = null);
-    Task<AiTrackDto> GetAiTrackAsync(string jsonSchema, List<Track> inputTracks, string genre = null);
+    Task<AiPlaylistDto> GetAiPlaylistAsync(string jsonSchema, List<UserTrack> inputTracks, string genre = null);
+    Task<AiTrackDto> GetAiTrackAsync(string jsonSchema, List<UserTrack> inputTracks, string genre = null);
 }
 
 public class OpenaiService : IOpenaiService
@@ -47,7 +47,7 @@ public class OpenaiService : IOpenaiService
         throw new InvalidOperationException("No content returned from OpenAI chat completion.");
     }
 
-    public async Task<AiPlaylistDto> GetAiPlaylistAsync(string jsonSchema, List<Track> inputTracks, string? genre)
+    public async Task<AiPlaylistDto> GetAiPlaylistAsync(string jsonSchema, List<UserTrack> inputTracks, string? genre)
     {
         var userPrompt = BuildPlaylistPrompt(inputTracks, genre);
 
@@ -75,7 +75,7 @@ public class OpenaiService : IOpenaiService
         return result;
     }
 
-    public async Task<AiTrackDto> GetAiTrackAsync(string jsonSchema, List<Track> inputTracks, string? genre)
+    public async Task<AiTrackDto> GetAiTrackAsync(string jsonSchema, List<UserTrack> inputTracks, string? genre)
     {
         var userPrompt = BuildSongPrompt(inputTracks, genre);
 
@@ -103,30 +103,30 @@ public class OpenaiService : IOpenaiService
         return result;
     }
 
-    private string BuildPlaylistPrompt(List<Track> ratedTracks, string? genre)
+    private string BuildPlaylistPrompt(List<UserTrack> ratedTracks, string? genre)
     {
         var sb = new StringBuilder();
         sb.AppendLine($"I like the following tracks, and I'd like a playlist of 40 tracks in the genre '{genre ?? "'any applicable genre'"}':");
         sb.Append("All songs in the playlist must be from the same genre, the playlist must be genre-based.");
         sb.AppendLine("It must consist partially of songs from my list, and partially of newly suggested songs. Say 50/50");
 
-        foreach (var track in ratedTracks.OrderBy(rt => Guid.NewGuid()).Take(100))
+        foreach (var userTrack in ratedTracks.OrderBy(rt => Guid.NewGuid()).Take(100))
         {
-            sb.AppendLine($"- \"{track.Title}\" by {track.Artist}");
+            sb.AppendLine($"- \"{userTrack.Track.Title}\" by {userTrack.Track.Artist}");
         }
 
         sb.AppendLine("Please return the playlist as a JSON object conforming to the schema I will provide.");
         return sb.ToString();
     }
 
-    private string BuildSongPrompt(List<Track> ratedTracks, string? genre)
+    private string BuildSongPrompt(List<UserTrack> ratedTracks, string? genre)
     {
         var sb = new StringBuilder();
         sb.AppendLine($"I like the following tracks, and I'd like a song in the genre '{genre ?? "'any applicable genre'"}':");
 
-        foreach (var track in ratedTracks.OrderBy(rt => Guid.NewGuid()).Take(100))
+        foreach (var userTrack in ratedTracks.OrderBy(rt => Guid.NewGuid()).Take(100))
         {
-            sb.AppendLine($"- \"{track.Title}\" by {track.Artist}");
+            sb.AppendLine($"- \"{userTrack.Track.Title}\" by {userTrack.Track.Artist}");
         }
 
         sb.AppendLine("Please return the song as a JSON object conforming to the schema I will provide.");

@@ -8,24 +8,24 @@ namespace spotify_rating.Web.Controllers;
 [Authorize]
 public class HistoryController : Controller
 {
-    private readonly ITrackRepository _trackRepository;
+    private readonly IUserTrackRepository _userTrackRepository;
 
-    public HistoryController(ITrackRepository trackRepository)
+    public HistoryController(IUserTrackRepository userTrackRepository)
     {
-        _trackRepository = trackRepository;
+        _userTrackRepository = userTrackRepository;
     }
 
     [HttpGet("/history")]
     public async Task<IActionResult> Index()
     {
-        var tracks = await _trackRepository.GetAllAsync();
+        var userTracks = await _userTrackRepository.GetAllAsync();
 
-        var ratedTracks = tracks.Where(r => r.Rating != null).ToList();
+        var ratedTracks = userTracks.Where(r => r.Rating != null).ToList();
 
         return View(new HistoryViewModel
         {
             Tracks = ratedTracks.ToList(),
-            Total = tracks.ToList().Count,
+            Total = userTracks.ToList().Count,
             Rated = ratedTracks.Count
         });
     }

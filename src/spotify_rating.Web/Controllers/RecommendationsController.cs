@@ -10,15 +10,15 @@ namespace spotify_rating.Web.Controllers;
 [Authorize]
 public class RecommendationsController : Controller
 {
-    private readonly ITrackRepository _trackRepository;
     private readonly IOpenaiService _openaiService;
     private readonly ISpotifyService _spotifyService;
+    private readonly IUserTrackRepository _userTrackRepository;
 
-    public RecommendationsController(ITrackRepository trackRepository, IOpenaiService openaiService, ISpotifyService spotifyService)
+    public RecommendationsController(IOpenaiService openaiService, ISpotifyService spotifyService, IUserTrackRepository userTrackRepository)
     {
-        _trackRepository = trackRepository;
         _openaiService = openaiService;
         _spotifyService = spotifyService;
+        _userTrackRepository = userTrackRepository;
     }
 
     [HttpGet("/recommendations")]
@@ -36,11 +36,11 @@ public class RecommendationsController : Controller
     [HttpGet("/api/recommendations/song")]
     public async Task<IActionResult> GetSongRecommendation()
     {
-        var tracks = await _trackRepository.GetAllAsync();
+        var userTracks = await _userTrackRepository.GetAllAsync();
 
         string jsonSchema = System.IO.File.ReadAllText("Schemas/aiTrackDto.json");
 
-        var completion = await _openaiService.GetAiTrackAsync(jsonSchema, tracks.ToList());
+        var completion = await _openaiService.GetAiTrackAsync(jsonSchema, userTracks.ToList());
 
         var track = await _spotifyService.GetTrackByTitleAndArtistAsync(User.FindFirstValue("access_token"), completion.Title, completion.Artist, completion.Genre);
 
@@ -52,7 +52,7 @@ public class RecommendationsController : Controller
     [HttpGet("/api/recommendations/playlist")]
     public async Task<IActionResult> GetPlaylistRecommendation()
     {
-        var userTracks = await _trackRepository.GetAllAsync();
+        var userTracks = await _userTrackRepository.GetAllAsync();
 
         string jsonSchema = System.IO.File.ReadAllText("Schemas/aiPlaylistDto.json");
 

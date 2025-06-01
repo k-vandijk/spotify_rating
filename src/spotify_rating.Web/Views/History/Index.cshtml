@@ -9,11 +9,11 @@
         <div class="list-group">
             @foreach (var track in Model.Tracks.OrderByDescending(r => r.RatedAtUtc))
             {
-                <a class="list-group-item list-group-item-action d-flex gap-3 py-3 align-items-center text-decoration-none" href="@track.SpotifyUri" target="_blank" rel="noopener noreferrer">
-                    <img src="@track.SpotifyAlbumCoverUrl" class="rounded shadow-sm" style="width: 64px; height: 64px; object-fit: cover;" alt="Cover"/>
+                <a class="list-group-item list-group-item-action d-flex gap-3 py-3 align-items-center text-decoration-none" href="@track.Track.SpotifyUri" target="_blank" rel="noopener noreferrer">
+                    <img src="@track.Track.SpotifyAlbumCoverUrl" class="rounded shadow-sm" style="width: 64px; height: 64px; object-fit: cover;" alt="Cover"/>
                     <div class="flex-grow-1">
-                        <div class="fw-semibold">@track.Title</div>
-                        <div class="small">@track.Artist</div>
+                        <div class="fw-semibold">@track.Track.Title</div>
+                        <div class="small">@track.Track.Artist</div>
                         <div class="small" title="Rated at">
                             <i class="fa-regular fa-calendar me-2 text-success"></i>
                             @track.RatedAtUtc!.Value.ToLocalTime().ToString("dd-MM-yyyy HH:mm")

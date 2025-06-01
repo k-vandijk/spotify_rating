@@ -8,8 +8,6 @@ namespace spotify_rating.Services;
 public interface ISpotifyService
 {
     Task<List<Track>> GetLikedTracksAsync(string accessToken, string spotifyUserId);
-    IEnumerable<Track> GetNewTracksAsync(List<Track> newList, List<Track> oldList);
-    IEnumerable<Track> GetRemovedTracksAsync(List<Track> newList, List<Track> oldList);
     Task<Track?> GetTrackByTitleAndArtistAsync(string accessToken, string title, string artist, string genre);
 }
 
@@ -49,21 +47,8 @@ public class SpotifyService : ISpotifyService
         }
 
         _logger.LogInformation($"Fetched {likedTracks.Count} liked tracks from Spotify.");
+
         return likedTracks;
-    }
-
-    public IEnumerable<Track> GetNewTracksAsync(List<Track> newList, List<Track> oldList)
-    {
-        return newList.Where(nlr => !oldList.Any(olr =>
-            string.Equals(nlr.Title, olr.Title, StringComparison.OrdinalIgnoreCase) &&
-            string.Equals(nlr.Artist, olr.Artist, StringComparison.OrdinalIgnoreCase)));
-    }
-
-    public IEnumerable<Track> GetRemovedTracksAsync(List<Track> newList, List<Track> oldList)
-    {
-        return oldList.Where(olr => !newList.Any(nlr =>
-            string.Equals(nlr.Title, olr.Title, StringComparison.OrdinalIgnoreCase) &&
-            string.Equals(nlr.Artist, olr.Artist, StringComparison.OrdinalIgnoreCase)));
     }
 
     public async Task<Track?> GetTrackByTitleAndArtistAsync(string accessToken, string title, string artist, string genre)
@@ -122,7 +107,6 @@ public class SpotifyService : ISpotifyService
                 Title = track.GetProperty("name").GetString(),
                 Artist = track.GetProperty("artists")[0].GetProperty("name").GetString(),
                 SpotifyAlbumCoverUrl = track.GetProperty("album").GetProperty("images")[0].GetProperty("url").GetString(),
-                SpotifyUserId = spotifyUserId,
                 SpotifyTrackId = track.GetProperty("id").GetString(),
                 SpotifyUri = track.GetProperty("uri").GetString(),
             });
