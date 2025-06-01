@@ -74,7 +74,7 @@ Bij playlists zal de knop staan om ze op te slaan op hun spotify account.
 @section Scripts {
     <script>
         const songCount = 5;
-        const playlistCount = 2;
+        const playlistCount = 4;
         let fetchedSongs = $(".songs-list a").length;
         let fetchedPlaylists = $(".playlists-list a").length;
 
@@ -143,15 +143,17 @@ Bij playlists zal de knop staan om ze op te slaan op hun spotify account.
 
         function addPlaylistToList(playlist) {
             $(".playlists-list").append(`
-                <a href="/recommendations/playlist/${playlist.id}" class="text-decoration-none text-dark">
-                    <div class="card h-100 shadow-sm hover-shadow-sm">
-                        <div class="card-body">
-                            <h6 class="card-title mb-1">${playlist.name}</h6>
-                            <p class="card-text small mb-2">${playlist.description}</p>
-                            <span class="badge bg-secondary">${playlist.genre}</span>
+                 <div class="col-md-6">
+                    <a href="/recommendations/playlist/${playlist.id}" class="text-decoration-none text-dark">
+                        <div class="card h-100 shadow-sm hover-shadow-sm">
+                            <div class="card-body">
+                                <h6 class="card-title mb-1">${playlist.name}</h6>
+                                <p class="card-text small mb-2">${playlist.description}</p>
+                                <span class="badge bg-info">{playlist.genre}</span>
+                            </div>
                         </div>
-                    </div>
-                </a>
+                    </a>
+                </div>
             `);
         }
 

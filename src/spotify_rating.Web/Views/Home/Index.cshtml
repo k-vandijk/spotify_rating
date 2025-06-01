@@ -157,6 +157,8 @@
             rateTrack(spotifyTrackId, ratingValue)
                 .then(() => {
                     toastr.success(`${successMessage} "${trackInfo}"`);
+                    tracks.splice(currentTrackIndex, 1);
+                    saveToCache({ tracks, total, rated: currentProgressIndex });
                     currentTrackIndex++;
                     currentProgressIndex++;
                     renderTrack(currentTrackIndex);

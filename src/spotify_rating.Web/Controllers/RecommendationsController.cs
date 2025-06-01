@@ -55,7 +55,19 @@ public class RecommendationsController : Controller
     [HttpGet("/recommendations/playlist/{id:guid}")]
     public async Task<IActionResult> Playlist([FromRoute] Guid id)
     {
-        return View();
+        var playlist = await _playlistRepository.GetByIdAsync(id);
+        
+        if (playlist == null)
+            return NotFound("Playlist not found.");
+
+        var playlistTracks = await _playlistTrackRepository.GetQueryable().Include(pt => pt.Track)
+            .Where(pt => pt.PlaylistId == playlist.Id).ToListAsync();
+
+        return View(new PlaylistViewModel
+        {
+            Playlist = playlist,
+            Tracks = playlistTracks.Select(pt => pt.Track).ToList()
+        });
     }
 
     [HttpGet("/api/recommendations/song")]
@@ -142,6 +154,8 @@ public class RecommendationsController : Controller
 
                 if (existingTrack != null)
                 {
+                    existingTrack.AiGenre = spotifyTrack.AiGenre;
+                    await _trackRepository.UpdateAsync(existingTrack);
                     spotifyTrack = existingTrack;
                 }
                 else
