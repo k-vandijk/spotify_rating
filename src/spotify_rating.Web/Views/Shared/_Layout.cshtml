@@ -9,16 +9,24 @@
     <partial name="_Styles" />
 </head>
 <body>
-    <partial name="_MobileNav" />
-    <div class="d-flex">
-        <div class="d-none d-md-block position-sticky top-0" style="height: 100vh;">
-            <partial name="_DesktopNav" />
-        </div>
-        <main class="flex-grow-1 p-4 w-100">
-            @RenderBody()
-        </main>
-    </div>
+    @if (TempData["HideLayout"] == "true")
+    {
+        @RenderBody()
+    }
 
+    else
+    {
+        <partial name="Components/_MobileNav" />
+        <div class="d-flex">
+            <div class="d-none d-md-block position-sticky top-0" style="height: 100vh;">
+                <partial name="Components/_DesktopNav" />
+            </div>
+            <main class="flex-grow-1 w-100">
+                <partial name="Components/_DesktopNavBreadcrumb" />
+                @RenderBody()
+            </main>
+        </div>
+    }
     <partial name="_Scripts" />
     @await RenderSectionAsync("Scripts", required: false)
 </body>

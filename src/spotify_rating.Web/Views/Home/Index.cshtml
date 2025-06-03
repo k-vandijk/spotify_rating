@@ -8,10 +8,11 @@
 <input id="spotifyTrackId" hidden />
 
 <div id="pageWrapper" class="position-relative" style="min-height: 100vh;">
-    <partial name="_Loading" />
+    <partial name="Components/_Loading" />
 
     <div id="app" style="display: none;">
         <div class="card shadow-lg container p-0 my-5 col-xl-6 col-lg-8 col-md-10 col-sm-12 col-12 overflow-hidden">
+            <partial name="Components/_LoadingMini" />
             <div class="position-relative">
                 <div class="progress" style="height: 6px; border-radius: 0;">
                     <div id="trackProgress" class="progress-bar bg-success" role="progressbar"></div>
@@ -21,9 +22,11 @@
                 </div>
             </div>
 
+
+
             <div class="p-5">
                 <div class="text-center position-relative mb-4">
-                    <img id="cover" class="img-fluid rounded shadow-sm mb-4" style="max-height: 300px;" src="" alt="Album cover" />
+                    <img id="cover" class="img-fluid rounded shadow-sm mb-4" style="max-height: 300px;" src="" alt="Album cover"/>
                     <div class="d-flex justify-content-center align-items-center gap-2 mb-3">
                         <h5 id="trackInfo" class="fw-semibold mb-0"></h5>
                         <a id="spotifyLink" href="#" target="_blank" rel="noopener"
@@ -134,6 +137,7 @@
                 }
 
                 $("#loadingOverlay").remove();
+                $("#miniLoadingOverlay").remove();
             } catch (err) {
                 $("#loadingOverlay").html("<p class='text-danger'>Failed to load data.</p>");
                 console.error(err);

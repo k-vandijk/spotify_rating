@@ -1,0 +1,59 @@
+﻿@model ListItemViewModel
+
+@{
+    var hasUrl = !string.IsNullOrEmpty(Model.CardUrl);
+    var tagName = hasUrl ? "a" : "div";
+}
+
+<@tagName class="list-group-item list-group-item-action d-flex gap-3 py-3 align-items-center text-decoration-none"
+@(hasUrl ? $"href={Model.CardUrl}" : "")>
+<img src="@Model.PictureUrl" class="rounded shadow-sm" style="width: 64px; height: 64px; object-fit: cover;" alt="Cover" />
+<div class="flex-grow-1">
+    <div class="fw-semibold">@Model.Title</div>
+    <div class="small">@Model.Subtitle</div>
+
+    <div class="d-flex flex-row gap-1">
+        @if (!string.IsNullOrEmpty(Model.CalendarText))
+        {
+            <div class="small" title="Rated at">
+                <i class="fa-regular fa-calendar text-success"></i>
+                @Model.CalendarText
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(Model.SpotifyButtonUrl))
+        {
+            <div class="small">
+                <a href="@Model.SpotifyButtonUrl" class="badge rounded-pill bg-success">
+                    <i class="fa-brands fa-spotify"></i>
+                    Play
+                </a>
+            </div>
+        }
+    
+        @if (!string.IsNullOrEmpty(Model.LikeButtonUrl))
+        {
+            <div class="small">
+                <a href="@Model.LikeButtonUrl" class="badge rounded-pill bg-success">
+                    <i class="fa-regular fa-thumbs-up"></i>
+                    Like
+                </a>
+            </div>
+        }
+    
+        @if (!string.IsNullOrEmpty(Model.DislikeButtonUrl))
+        {
+            <div class="small">
+                <a href="@Model.DislikeButtonUrl" class="badge">
+                    Dismiss
+                </a>
+            </div>
+        }
+    </div>
+</div>
+
+@if (!string.IsNullOrEmpty(Model.Badge))
+{
+    <span class="badge @(Model.BadgeClass)">@Model.Badge</span>
+}
+</@tagName>

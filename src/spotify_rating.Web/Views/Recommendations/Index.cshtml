@@ -3,27 +3,13 @@
     ViewData["Title"] = "spotify_rating";
 }
 
-<!-- 
-
-De api heeft funcies die elk 1 playlist of 1 song geven, deze worden 1x tegelijk aangeroepen totdat de gebruiker 5 songs heeft, en 3 playlist.
-Wanneer de gebruiker een verwijderd, wordt desbetreffende functie opnieuw aangeroepen.
-
-Je zal de main loading spinner dus alleen zien totdat het eerste item is gegeven
-
-Daarna zal je altijd een kleine spinner rechtsbovenin zien als de app aan het wachten is op een openai call.
-
-Deze songsuggesties en playlist suggesties zullen worden gecached.
-
-Bij playlists zal de knop staan om ze op te slaan op hun spotify account.
-
--->
-
 <div id="pageWrapper" class="position-relative" style="min-height: 100vh;">
-    <partial name="_Loading" />
+    <partial name="Components/_Loading" />
 
     <div id="app" style="display: none;">
 
         <div class="card shadow-lg container p-0 my-5 col-xl-6 col-lg-8 col-md-10 col-sm-12 col-12">
+            <partial name="Components/_LoadingMini" />
             <div class="py-3 px-3 px-sm-3 px-md-3 px-lg-5 px-xl-5">
                 <h3 class="mb-3 text-center">Music Suggestions</h3>
                 <h5 class="mb-3">Suggested Songs</h5>
@@ -32,14 +18,16 @@ Bij playlists zal de knop staan om ze op te slaan op hun spotify account.
                     {
                         ListItemViewModel viewModel = new ListItemViewModel
                         {
-                            CardUrl = track.SpotifyUri,
                             PictureUrl = track.SpotifyAlbumCoverUrl,
                             Title = track.Title,
                             Subtitle = track.Artist,
-                            Badge = track.AiGenre
+                            Badge = track.AiGenre,
+                            SpotifyButtonUrl = track.SpotifyUri,
+                            LikeButtonUrl = $"/api/recommendations/like?track={track.SpotifyTrackId}",
+                            DislikeButtonUrl = $"/api/recommendations/dislike?track={track.SpotifyTrackId}"
                         };
 
-                        <partial name="_ListItem" model="viewModel" />
+                        <partial name="Components/_ListItem" model="viewModel"/>
                     }
                 </div>
 
@@ -60,7 +48,7 @@ Bij playlists zal de knop staan om ze op te slaan op hun spotify account.
                         </div>
                     }
                 </div>
-        </div>
+            </div>
         </div>
     </div>
 </div>
@@ -69,10 +57,11 @@ Bij playlists zal de knop staan om ze op te slaan op hun spotify account.
     <script>
         const songCount = 5;
         const playlistCount = 4;
-        let fetchedSongs = $(".songs-list a").length;
-        let fetchedPlaylists = $(".playlists-list a").length;
+        let fetchedSongs = @Model.Tracks.Count;
+        let fetchedPlaylists = @Model.Playlists.Count;
 
         $(document).ready(function () {
+             $("#miniLoadingOverlay").hide();
             fetchInitialRecommendations();
         });
 
@@ -152,11 +141,11 @@ Bij playlists zal de knop staan om ze op te slaan op hun spotify account.
         }
 
         function showSmallLoader() {
-            // show spinner (e.g. top-right)
+            $("#miniLoadingOverlay").show();
         }
 
         function hideSmallLoader() {
-            // hide spinner
+            $("#miniLoadingOverlay").hide();
         }
     </script>
 }

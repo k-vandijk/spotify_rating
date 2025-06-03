@@ -182,4 +182,30 @@ public class RecommendationsController : Controller
 
         return Ok(playlist);
     }
+
+    [HttpGet("/api/recommendations/like")]
+    public async Task<IActionResult> LikeRecommendation(string track)
+    {
+        return RedirectToAction(nameof(Index));
+    }
+
+    [HttpGet("/api/recommendations/dislike")]
+    public async Task<IActionResult> DislikeRecommendation(string track)
+    {
+        string? spotifyUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (string.IsNullOrEmpty(spotifyUserId))
+            return Unauthorized("Spotify user ID is missing.");
+
+        var userTrack = await _userTrackRepository.GetQueryable()
+            .FirstOrDefaultAsync(ut => ut.SpotifyUserId == spotifyUserId && ut.Track.SpotifyTrackId == track);
+
+        if (userTrack == null)
+            return NotFound("Track not found.");
+
+        userTrack.IsDismissed = true;
+        userTrack.DismissedAtUtc = DateTime.UtcNow;
+        await _userTrackRepository.UpdateAsync(userTrack);
+        return RedirectToAction(nameof(Index));
+    }
 }

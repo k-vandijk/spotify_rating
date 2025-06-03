@@ -129,7 +129,31 @@ public class HomeController : Controller
             Rating = dto.Rating
         });
     }
-        
+
+    [HttpGet("404")]
+    [AllowAnonymous]
+    public IActionResult NotFoundPage()
+    {
+        TempData["HideLayout"] = "true";
+        return View();
+    }
+
+    [HttpGet("401")]
+    [AllowAnonymous]
+    public IActionResult UnauthorizedPage()
+    {
+        TempData["HideLayout"] = "true";
+        return View();
+    }
+
+    [HttpGet("500")]
+    [AllowAnonymous]
+    public IActionResult ErrorPage()
+    {
+        TempData["HideLayout"] = "true";
+        return View();
+    }
+
     private static List<Track> GetShuffledUnratedTracks(List<Track> liveTracks, List<UserTrack> userTracks)
     {
         return liveTracks
