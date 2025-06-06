@@ -89,6 +89,7 @@ public class BaseRepository<TEntity> : IBaseRepository<TEntity> where TEntity : 
     public async Task AddRangeAsync(IEnumerable<TEntity> entities)
     {
         string currentUserId = GetCurrentUserId();
+
         foreach (var entity in entities)
         {
             entity.CreatedBy = currentUserId;
@@ -102,14 +103,24 @@ public class BaseRepository<TEntity> : IBaseRepository<TEntity> where TEntity : 
 
     public async Task UpdateAsync(TEntity entity)
     {
-      
+        string currentUserId = GetCurrentUserId();
+        
+        entity.UpdatedBy = currentUserId;
+        entity.UpdatedAtUtc = DateTime.UtcNow;
+
+        _dbSet.Update(entity);
+        await _context.SaveChangesAsync();
+
+        InvalidateUserCache(currentUserId, entity.Id);
     }
 
     public async Task RemoveAsync(TEntity entity)
     {
         string currentUserId = GetCurrentUserId();
-        entity.UpdatedBy = currentUserId;
-        entity.UpdatedAtUtc = DateTime.UtcNow;
+
+        entity.Active = false;
+        entity.DeactivatedAtUtc = DateTime.UtcNow;
+        entity.DeactivatedBy = currentUserId;
 
         _dbSet.Update(entity);
         await _context.SaveChangesAsync();

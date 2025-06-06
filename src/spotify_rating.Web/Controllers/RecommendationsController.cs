@@ -218,6 +218,7 @@ public class RecommendationsController : Controller
     [HttpGet("/api/recommendations/like")]
     public async Task<IActionResult> LikeRecommendation(string track)
     {
+        // TODO Like on spotify
         return RedirectToAction(nameof(Index));
     }
 
