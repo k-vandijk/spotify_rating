@@ -5,15 +5,15 @@ using System.Security.Claims;
 
 namespace spotify_rating.Data.Repositories;
 
-public interface IUserPlaylistRepository : IRepository<UserPlaylist>
+public interface IUserPlaylistRepository : IBaseRepository<UserPlaylist>
 {
 }
 
-public class UserPlaylistRepository : Repository<UserPlaylist>, IUserPlaylistRepository
+public class UserPlaylistRepository : BaseRepository<UserPlaylist>, IUserPlaylistRepository
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public UserPlaylistRepository(DataContext context, IHttpContextAccessor httpContextAccessor) : base(context)
+    public UserPlaylistRepository(DataContext context, IHttpContextAccessor httpContextAccessor) : base(context, httpContextAccessor)
     {
         _httpContextAccessor = httpContextAccessor;
     }

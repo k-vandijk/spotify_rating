@@ -14,3 +14,12 @@ public class ListItemViewModel
     public string Badge { get; set; } = string.Empty;
     public string BadgeClass { get; set; } = "bg-success";
 }
+
+public class ListItemMiniViewModel
+{
+    public string CardUrl { get; set; } = string.Empty;
+    public string Title { get; set; } = string.Empty;
+    public string Subtitle { get; set; } = string.Empty;
+    public string Badge { get; set; } = string.Empty;
+    public string BadgeClass { get; set; } = "bg-success";
+}

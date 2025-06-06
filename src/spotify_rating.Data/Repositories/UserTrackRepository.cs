@@ -5,15 +5,15 @@ using Microsoft.AspNetCore.Http;
 
 namespace spotify_rating.Data.Repositories;
 
-public interface IUserTrackRepository : IRepository<UserTrack>
+public interface IUserTrackRepository : IBaseRepository<UserTrack>
 {
 }
 
-public class UserTrackRepository : Repository<UserTrack>, IUserTrackRepository
+public class UserTrackRepository : BaseRepository<UserTrack>, IUserTrackRepository
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public UserTrackRepository(DataContext context, IHttpContextAccessor httpContextAccessor) : base(context)
+    public UserTrackRepository(DataContext context, IHttpContextAccessor httpContextAccessor) : base(context, httpContextAccessor)
     {
         _httpContextAccessor = httpContextAccessor;
     }

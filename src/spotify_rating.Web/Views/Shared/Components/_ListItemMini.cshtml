@@ -1,0 +1,19 @@
+﻿@model ListItemMiniViewModel
+
+@{
+    var hasUrl = !string.IsNullOrEmpty(Model.CardUrl);
+    var tagName = hasUrl ? "a" : "div";
+}
+
+<div class="col-md-6 mb-3">
+    <@tagName class="text-decoration-none text-dark"
+    @(hasUrl ? $"href={Model.CardUrl}" : "")>
+        <div class="card h-100 shadow-sm hover-shadow-sm">
+            <div class="card-body">
+                <h6 class="card-title mb-1">@Model.Title</h6>
+                <p class="card-text small mb-2">@Model.Subtitle</p>
+                <span class="badge @(Model.BadgeClass)">@Model.Badge</span>
+            </div>
+        </div>
+    </@tagName>
+</div>

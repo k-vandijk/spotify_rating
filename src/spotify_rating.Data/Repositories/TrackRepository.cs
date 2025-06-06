@@ -1,14 +1,15 @@
-﻿using spotify_rating.Data.Entities;
+﻿using Microsoft.AspNetCore.Http;
+using spotify_rating.Data.Entities;
 
 namespace spotify_rating.Data.Repositories;
 
-public interface ITrackRepository : IRepository<Track>
+public interface ITrackRepository : IBaseRepository<Track>
 {
 }
 
-public class TrackRepository : Repository<Track>, ITrackRepository
+public class TrackRepository : BaseRepository<Track>, ITrackRepository
 {
-    public TrackRepository(DataContext context) : base(context)
+    public TrackRepository(DataContext context, IHttpContextAccessor httpContextAccessor) : base(context, httpContextAccessor)
     {
     }
 }

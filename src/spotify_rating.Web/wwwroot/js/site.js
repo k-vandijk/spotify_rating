@@ -16,9 +16,9 @@
     function updateThemeIcon(theme) {
         const icon = $("#themeIcon");
         if (theme === "dark") {
-            icon.removeClass().addClass("fa-solid fa-moon");
+            icon.removeClass().addClass("fa-solid fa-moon me-2");
         } else {
-            icon.removeClass().addClass("fa-solid fa-sun");
+            icon.removeClass().addClass("fa-solid fa-sun me-2");
         }
     }
 

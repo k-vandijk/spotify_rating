@@ -8,14 +8,14 @@
         <!-- Home -->
         <li class="nav-item">
             <a href="/" class="nav-link @(path == "/" ? "active" : "")">
-                <i class="fa-solid fa-house me-1"></i> Home
+                <i class="fa-solid fa-house me-2"></i> Home
             </a>
         </li>
 
         <!-- Rating History -->
         <li class="nav-item">
             <a href="/history" class="nav-link @(path.StartsWith("/history") ? "active" : "")">
-                <i class="fa-solid fa-clock-rotate-left me-1"></i> Rating History
+                <i class="fa-solid fa-clock-rotate-left me-2"></i> Rating History
             </a>
         </li>
 
@@ -25,6 +25,14 @@
                 <i class="fa-solid fa-robot me-1"></i> AI Recommendations
             </a>
         </li>
+        
+        <!-- Dashboard -->
+        <li class="nav-item">
+            <a href="/dashboard" class="nav-link @(path.StartsWith("/dashboard") ? "active" : "")">
+                <i class="fa-solid fa-chart-simple me-2"></i> Dashboard
+            </a>
+        </li>
+
 
         <!-- Theme Toggle (non-navigational) -->
         <li class="nav-item">

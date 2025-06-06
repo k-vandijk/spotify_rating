@@ -183,6 +183,38 @@ public class RecommendationsController : Controller
         return Ok(playlist);
     }
 
+    [HttpPost("/api/recommendations/render-track")]
+    public IActionResult RenderListItem([FromBody] Track track)
+    {
+        var viewModel = new ListItemViewModel
+        {
+            PictureUrl = track.SpotifyAlbumCoverUrl,
+            Title = track.Title,
+            Subtitle = track.Artist,
+            Badge = track.AiGenre,
+            SpotifyButtonUrl = track.SpotifyUri,
+            LikeButtonUrl = $"/api/recommendations/like?track={track.SpotifyTrackId}",
+            DislikeButtonUrl = $"/api/recommendations/dislike?track={track.SpotifyTrackId}"
+        };
+
+        return PartialView("Components/_ListItem", viewModel);
+    }
+
+    [HttpPost("/api/recommendations/render-playlist")]
+    public IActionResult RenderListItem([FromBody] Playlist playlist)
+    {
+        var viewModel = new ListItemMiniViewModel
+        {
+            CardUrl = $"/recommendations/playlist/{playlist.Id}",
+            Title = playlist.Name,
+            Subtitle = playlist.Description,
+            Badge = playlist.Genre,
+            BadgeClass = "bg-info"
+        };
+
+        return PartialView("Components/_ListItemMini", viewModel);
+    }
+
     [HttpGet("/api/recommendations/like")]
     public async Task<IActionResult> LikeRecommendation(string track)
     {
