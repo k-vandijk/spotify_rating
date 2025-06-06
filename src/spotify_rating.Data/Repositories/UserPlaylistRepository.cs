@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using spotify_rating.Data.Entities;
-using System.Security.Claims;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace spotify_rating.Data.Repositories;
 
@@ -13,17 +13,31 @@ public class UserPlaylistRepository : BaseRepository<UserPlaylist>, IUserPlaylis
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public UserPlaylistRepository(DataContext context, IHttpContextAccessor httpContextAccessor) : base(context, httpContextAccessor)
+    public UserPlaylistRepository(DataContext context, IHttpContextAccessor httpContextAccessor, IMemoryCache memoryCache) : base(context, httpContextAccessor, memoryCache)
     {
         _httpContextAccessor = httpContextAccessor;
     }
 
     public new async Task<IEnumerable<UserPlaylist>> GetAllAsync()
     {
-        string? spotifyUserId = _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrEmpty(spotifyUserId))
-            return [];
+        string userId = GetCurrentUserId();
+        string cacheKey = $"{nameof(UserPlaylist)}_all_user_{userId}";
 
-        return await _dbSet.Include(up => up.Playlist).Where(r => r.SpotifyUserId == spotifyUserId).ToListAsync();
+        if (_memoryCache.TryGetValue(cacheKey, out IEnumerable<UserPlaylist> cachedData))
+        {
+            return cachedData;
+        }
+
+        var data = await _dbSet
+            .Include(up => up.Playlist)
+            .Where(up => up.Active && up.SpotifyUserId == userId)
+            .ToListAsync();
+
+        _memoryCache.Set(cacheKey, data, new MemoryCacheEntryOptions
+        {
+            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10)
+        });
+
+        return data;
     }
 }
