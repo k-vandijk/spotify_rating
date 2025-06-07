@@ -11,11 +11,8 @@ public interface IUserTrackRepository : IBaseRepository<UserTrack>
 
 public class UserTrackRepository : BaseRepository<UserTrack>, IUserTrackRepository
 {
-    private readonly IHttpContextAccessor _httpContextAccessor;
-
     public UserTrackRepository(DataContext context, IHttpContextAccessor httpContextAccessor, IMemoryCache memoryCache) : base(context, httpContextAccessor, memoryCache)
     {
-        _httpContextAccessor = httpContextAccessor;
     }
 
     public new async Task<IEnumerable<UserTrack>> GetAllAsync()

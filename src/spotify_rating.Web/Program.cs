@@ -31,9 +31,8 @@ app.UseHttpsRedirection();
 
 app.UseStaticFiles();
 
-app.UseStatusCodePagesWithReExecute("/{0}");
-
-app.UseExceptionHandler("/Home/Error");
+app.UseExceptionHandler("/500");
+app.UseStatusCodePagesWithReExecute("/{0}");    
 
 app.UseRouting();
 

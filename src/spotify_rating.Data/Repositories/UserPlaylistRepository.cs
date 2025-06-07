@@ -11,11 +11,8 @@ public interface IUserPlaylistRepository : IBaseRepository<UserPlaylist>
 
 public class UserPlaylistRepository : BaseRepository<UserPlaylist>, IUserPlaylistRepository
 {
-    private readonly IHttpContextAccessor _httpContextAccessor;
-
     public UserPlaylistRepository(DataContext context, IHttpContextAccessor httpContextAccessor, IMemoryCache memoryCache) : base(context, httpContextAccessor, memoryCache)
     {
-        _httpContextAccessor = httpContextAccessor;
     }
 
     public new async Task<IEnumerable<UserPlaylist>> GetAllAsync()

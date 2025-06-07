@@ -6,6 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"]</title>
+
     <partial name="_Styles" />
 </head>
 <body>
@@ -22,8 +23,8 @@
                 <partial name="Components/_DesktopNav" />
             </div>
             <main class="flex-grow-1 w-100">
-                <div class="card shadow-lg container my-5 p-0 col-xl-6 col-lg-8 col-md-10 col-sm-12 col-12">
-                    @await RenderSectionAsync("BodyStart", required: false)  <!-- 👈 Inject here -->
+                <div class="card shadow-lg container my-5 col-xl-6 col-lg-8 col-md-10 col-sm-12 col-12">
+                    @await RenderSectionAsync("BodyStart", required: false)
                     <div class="py-3 px-3 px-sm-3 px-md-3 px-lg-5 px-xl-5">
                         @RenderBody()
                     </div>

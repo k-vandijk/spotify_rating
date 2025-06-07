@@ -17,7 +17,7 @@ public interface IBaseRepository<TEntity> where TEntity : class
     IQueryable<TEntity> GetQueryable();
 }
 
-public class BaseRepository<TEntity> : IBaseRepository<TEntity> where TEntity : BaseEntity
+public abstract class BaseRepository<TEntity> : IBaseRepository<TEntity> where TEntity : BaseEntity
 {
     protected readonly DataContext _context;
     protected readonly IHttpContextAccessor _httpContextAccessor;
@@ -133,13 +133,13 @@ public class BaseRepository<TEntity> : IBaseRepository<TEntity> where TEntity : 
         return _dbSet.Where(x => x.Active).AsQueryable();
     }
 
-    public string GetCurrentUserId()
+    protected string GetCurrentUserId()
     {
         string? spotifyUserId = _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
         return spotifyUserId ?? string.Empty;
     }
 
-    private void InvalidateUserCache(string userId, Guid entityId)
+    protected void InvalidateUserCache(string userId, Guid entityId)
     {
         string listCacheKey = $"{typeof(TEntity).Name}_all_user_{userId}";
         string idCacheKey = $"{typeof(TEntity).Name}_id_{entityId}_user_{userId}";

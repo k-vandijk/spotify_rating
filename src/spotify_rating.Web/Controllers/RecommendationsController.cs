@@ -219,6 +219,7 @@ public class RecommendationsController : Controller
     public async Task<IActionResult> LikeRecommendation(string track)
     {
         // TODO Like on spotify
+
         return RedirectToAction(nameof(Index));
     }
 
