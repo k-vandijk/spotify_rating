@@ -17,7 +17,7 @@ public class AdminController : Controller
 
     public async Task<IActionResult> Index()
     {
-        var trafficLogs = await _context.TrafficLogs.ToListAsync();
+        var trafficLogs = await _context.TrafficLogs.Where(tl => tl.IPAddress != "127.0.0.1").ToListAsync();
 
         return View(trafficLogs);
     }

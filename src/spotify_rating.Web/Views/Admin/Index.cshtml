@@ -43,7 +43,7 @@
                 <td>@traffic.Path</td>
                 <td>@traffic.Method</td>
                 <td>@traffic.IPAddress</td>
-                <td>@traffic.Timestamp.ToLocalTime().ToString("dd-MM-yyyy HH:mm")</td>
+                <td class="timestamp" data-utc="@traffic.Timestamp.ToString("O")Z"></td>
             </tr>
         }
         </tbody>
@@ -88,6 +88,16 @@
             }
         });
 
-        const trafficTable = new DataTable('#trafficTable');
+        document.querySelectorAll('td.timestamp').forEach(cell => {
+            const utc = cell.dataset.utc;
+            if (utc) {
+                const date = new Date(utc);
+                cell.textContent = date.toLocaleString(undefined, timeOptions);
+            }
+        });
+
+        const trafficTable = new DataTable('#trafficTable', {
+            order: [[4, 'desc']]
+        });
     </script>
 }
