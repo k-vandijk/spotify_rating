@@ -15,6 +15,7 @@ public static class ServiceExtensions
         services.AddScoped<IOpenaiService, OpenaiService>();
         services.AddScoped<ISpotifyService, SpotifyService>();
         services.AddScoped<ITrafficLogService, TrafficLogService>();
+        services.AddScoped<IUserRoleService, UserRoleService>();
 
         services.AddHttpClient<ISpotifyService, SpotifyService>()
             .AddHttpMessageHandler<SpotifyAuthHandler>();

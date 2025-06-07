@@ -1,9 +1,10 @@
-﻿using System.Net.Http.Headers;
-using System.Security.Claims;
-using System.Text.Json;
-using Microsoft.AspNetCore.Authentication;
+﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OAuth;
+using spotify_rating.Services.Services;
+using System.Net.Http.Headers;
+using System.Security.Claims;
+using System.Text.Json;
 
 namespace spotify_rating.Web.Extensions;
 
@@ -49,6 +50,14 @@ public static class AuthExtensions
 
                         var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
                         context.RunClaimActions(json.RootElement);
+
+                        var spotifyUserId = json.RootElement.GetProperty("id").GetString();
+
+                        var roleService = context.HttpContext.RequestServices.GetRequiredService<IUserRoleService>();
+                        var role = roleService.GetRoleForUser(spotifyUserId!);
+
+                        var identity = (ClaimsIdentity)context.Principal!.Identity!;
+                        identity.AddClaim(new Claim(ClaimTypes.Role, role.ToString()));
                     }
                 };
             });

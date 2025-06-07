@@ -5,7 +5,7 @@ using spotify_rating.Data;
 
 namespace spotify_rating.Web.Controllers;
 
-[Authorize]
+[Authorize(Roles = "Admin")]
 public class AdminController : Controller
 {
     private readonly DataContext _context;

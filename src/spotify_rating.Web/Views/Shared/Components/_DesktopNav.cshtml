@@ -32,7 +32,16 @@
                 <i class="fa-solid fa-chart-simple me-2"></i> Dashboard
             </a>
         </li>
-
+        
+        @if (User.IsInRole("Admin"))
+        {
+            <!-- Dashboard -->
+            <li class="nav-item">
+                <a href="/admin" class="nav-link @(path.StartsWith("/admin") ? "active" : "")">
+                    <i class="fa-solid fa-user-tie me-2"></i> Admin
+                </a>
+            </li>
+        }
 
         <!-- Theme Toggle (non-navigational) -->
         <li class="nav-item">

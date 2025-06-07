@@ -14,5 +14,6 @@ public class DataContext : DbContext
     public DbSet<Track> Tracks { get; set; }
     public DbSet<TrafficLog> TrafficLogs { get; set; }
     public DbSet<UserPlaylist> UserPlaylists { get; set; }
+    public DbSet<UserRole> UserRoles { get; set; }
     public DbSet<UserTrack> UserTracks { get; set; }
 }
