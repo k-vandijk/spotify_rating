@@ -1,5 +1,6 @@
 using spotify_rating.Data;
 using spotify_rating.Web.Extensions;
+using spotify_rating.Web.Middleware;
 using spotify_rating.Web.Utils;
 
 DotenvLoader.Load(Path.Combine(Directory.GetCurrentDirectory(), "../../.env"));
@@ -17,7 +18,8 @@ builder.Services.AddRepositories();
 
 builder.Services.AddHandlers();
 
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews(options =>
+    options.Filters.Add<TrafficLoggingMiddleware>());
 
 var app = builder.Build();
 

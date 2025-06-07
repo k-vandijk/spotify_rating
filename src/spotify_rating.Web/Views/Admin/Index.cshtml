@@ -1,0 +1,92 @@
+﻿@model List<TrafficLog>
+@using Newtonsoft.Json
+@using Newtonsoft.Json.Serialization
+@{
+    ViewData["Title"] = "spotify_rating";
+
+    var summaryData = Model
+        .GroupBy(l => l.Timestamp.ToLocalTime().Date)
+        .Select(g => new
+        {
+            Date = g.Key,
+            Visits = g.Count()
+        })
+        .OrderBy(x => x.Date)
+        .ToList();
+
+    var serializedSummaryData = JsonConvert.SerializeObject(summaryData, new JsonSerializerSettings
+    {
+        ContractResolver = new DefaultContractResolver()
+    });
+}
+
+<div class="my-5">
+    <canvas id="trafficChart" style="width: 100%; height: 400px; display: block;"></canvas>
+</div>
+
+<div class="table-responsive">
+    <table id="trafficTable" class="table table-striped table-hover">
+        <thead>
+        <tr>
+            <th scope="col">User ID</th>
+            <th scope="col">Path</th>
+            <th scope="col">Method</th>
+            <th scope="col">IP address</th>
+            <th scope="col">Time</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var traffic in Model)
+        {
+            <tr>
+                <th>@traffic.UserId</th>
+                <td>@traffic.Path</td>
+                <td>@traffic.Method</td>
+                <td>@traffic.IPAddress</td>
+                <td>@traffic.Timestamp.ToLocalTime().ToString("dd-MM-yyyy HH:mm")</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>
+
+@section Scripts {
+    <script>
+        const serializedSummaryData = @Html.Raw(serializedSummaryData);
+        const ctx = document.getElementById('trafficChart').getContext('2d');
+        const trafficChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: serializedSummaryData.map(log => new Date(log.Date).toLocaleDateString()),
+                datasets: [{
+                    label: 'Traffic (visits)',
+                    data: serializedSummaryData.map(log => log.Visits),
+                    fill: false,
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    title: {
+                        display: true,
+                        text: 'Traffic Over Time'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    }
+                }
+            }
+        });
+
+        const trafficTable = new DataTable('#trafficTable');
+    </script>
+}

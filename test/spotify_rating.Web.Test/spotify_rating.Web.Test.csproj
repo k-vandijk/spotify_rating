@@ -10,7 +10,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\src\spotify_rating.Web\spotify_rating.Web.csproj" />
+    <ProjectReference Include="..\..\src\spotify_rating.Web\spotify_rating.Web.csproj" />
   </ItemGroup>
 
 </Project>
