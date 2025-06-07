@@ -7,7 +7,7 @@ public class ListItemViewModel
     public string Subtitle { get; set; } = string.Empty;
 
     public string CardUrl { get; set; } = string.Empty;
-    public string CalendarText { get; set; } = string.Empty;
+    public DateTime? CalendarDateTime { get; set; }
     public string SpotifyButtonUrl { get; set; } = string.Empty;
     public string LikeButtonUrl { get; set; } = string.Empty;
     public string DislikeButtonUrl { get; set; } = string.Empty;

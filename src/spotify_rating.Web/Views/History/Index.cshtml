@@ -21,7 +21,7 @@
             PictureUrl = userTrack.Track.SpotifyAlbumCoverUrl,
             Title = userTrack.Track.Title,
             Subtitle = userTrack.Track.Artist,
-            CalendarText = $"{userTrack.RatedAtUtc.Value:O}Z",
+            CalendarDateTime = userTrack.RatedAtUtc.Value,
             Badge = userTrack.Rating.ToString(),
             BadgeClass = badgeClass
         };
@@ -32,11 +32,12 @@
 
 @section Scripts {
     <script>
-         document.querySelectorAll('#timestamp').forEach(cell => {
-            const utc = cell.dataset.utc;
-            if (utc) {
+        document.querySelectorAll('.timestamp').forEach(el => {
+            const utc = el.dataset.utc;
+            const target = el.querySelector('.datetime-text');
+            if (utc && target) {
                 const date = new Date(utc);
-                cell.textContent = date.toLocaleString(undefined, timeOptions);
+                target.textContent = date.toLocaleString(undefined, timeOptions);
             }
         });
     </script>

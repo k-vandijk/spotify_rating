@@ -13,11 +13,11 @@
     <div class="small">@Model.Subtitle</div>
 
     <div class="d-flex flex-row gap-1">
-        @if (!string.IsNullOrEmpty(Model.CalendarText))
+        @if (Model.CalendarDateTime.HasValue)
         {
-            <div class="small" title="Rated at">
+            <div class="small timestamp d-inline-flex align-items-center gap-1" data-utc="@Model.CalendarDateTime.Value.ToString("O")Z" title="Rated at">
                 <i class="fa-regular fa-calendar text-success"></i>
-                <p id="timestamp" data-utc="@Model.CalendarText"></p>
+                <span class="datetime-text"></span>
             </div>
         }
 
