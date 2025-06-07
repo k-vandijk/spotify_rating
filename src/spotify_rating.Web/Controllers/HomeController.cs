@@ -58,38 +58,7 @@ public class HomeController : Controller
         var shuffledTracks = GetShuffledUnratedTracks(liveLikedTracks, storedUserTracks.ToList());
 
         // Synchronize tracks in the background
-        _ = Task.Run(async () =>
-        {
-            using var scope = _serviceProvider.CreateScope();
-            var trackRepository = scope.ServiceProvider.GetRequiredService<ITrackRepository>();
-            var userTrackRepository = scope.ServiceProvider.GetRequiredService<IUserTrackRepository>();
-
-            // 1) Store new spotify tracks to Tracks
-            var storedTracks = await trackRepository.GetAllAsync();
-            var liveLikedTracksThatAreNotStored = liveLikedTracks
-                .Where(lt => storedTracks.All(st => st.SpotifyTrackId != lt.SpotifyTrackId))
-                .ToList();
-
-            if (liveLikedTracksThatAreNotStored.Any())
-            {
-                await trackRepository.AddRangeAsync(liveLikedTracksThatAreNotStored);
-            }
-
-            // 2) Add new user tracks to UserTracks
-            var newUserTracks = liveLikedTracks
-                .Where(lt => storedUserTracks.All(ut => ut.Track.SpotifyTrackId != lt.SpotifyTrackId))
-                .Select(lt => new UserTrack
-                {
-                    SpotifyUserId = spotifyUserId,
-                    Track = lt,
-                })
-                .ToList();
-
-            if (newUserTracks.Any())
-            {
-                await userTrackRepository.AddRangeAsync(newUserTracks);
-            }
-        });
+        _ = Task.Run(() => SynchronizeTracksAsync(_serviceProvider, liveLikedTracks, storedUserTracks.ToList(), spotifyUserId));
 
         return Json(new
         {
@@ -97,6 +66,57 @@ public class HomeController : Controller
             total = liveLikedTracks.Count,
             rated = storedUserTracks.Count(r => r.Rating != null)
         });
+    }
+
+    private static List<Track> GetShuffledUnratedTracks(List<Track> liveTracks, List<UserTrack> userTracks)
+    {
+        return liveTracks
+            .Where(lt => !userTracks.Any(ut => ut.Track.SpotifyTrackId == lt.SpotifyTrackId && ut.Rating != null))
+            .OrderBy(r => Guid.NewGuid())
+            .ToList();
+    }
+
+    private static async Task SynchronizeTracksAsync(IServiceProvider serviceProvider, List<Track> liveLikedTracks, List<UserTrack> storedUserTracks, string spotifyUserId)
+    {
+        using var scope = serviceProvider.CreateScope();
+        var trackRepository = scope.ServiceProvider.GetRequiredService<ITrackRepository>();
+        var userTrackRepository = scope.ServiceProvider.GetRequiredService<IUserTrackRepository>();
+
+        // 1) Store new spotify tracks to Tracks
+        await PersistNewTracksAsync(trackRepository, liveLikedTracks);
+
+        // 2) Add new user tracks to UserTracks
+        await PersistNewUserTracksAsync(liveLikedTracks, storedUserTracks, spotifyUserId, userTrackRepository);
+    }
+
+    private static async Task PersistNewTracksAsync(ITrackRepository trackRepository, List<Track> liveLikedTracks)
+    {
+        var storedTracks = await trackRepository.GetAllAsync();
+        var liveLikedTracksThatAreNotStored = liveLikedTracks
+            .Where(lt => storedTracks.All(st => st.SpotifyTrackId != lt.SpotifyTrackId))
+            .ToList();
+
+        if (liveLikedTracksThatAreNotStored.Any())
+        {
+            await trackRepository.AddRangeAsync(liveLikedTracksThatAreNotStored);
+        }
+    }
+
+    private static async Task PersistNewUserTracksAsync(List<Track> liveLikedTracks, List<UserTrack> storedUserTracks, string spotifyUserId, IUserTrackRepository userTrackRepository)
+    {
+        var newUserTracks = liveLikedTracks
+            .Where(lt => storedUserTracks.All(ut => ut.Track.SpotifyTrackId != lt.SpotifyTrackId))
+            .Select(lt => new UserTrack
+            {
+                SpotifyUserId = spotifyUserId,
+                Track = lt,
+            })
+            .ToList();
+
+        if (newUserTracks.Any())
+        {
+            await userTrackRepository.AddRangeAsync(newUserTracks);
+        }
     }
 
     [HttpPost("/api/home/rate-track")]
@@ -115,11 +135,13 @@ public class HomeController : Controller
             return Unauthorized("Spotify user ID is missing.");
 
         var userTrack = await _userTrackRepository.GetQueryable().FirstOrDefaultAsync(ut => ut.SpotifyUserId == spotifyUserId && ut.Track.SpotifyTrackId == dto.SpotifyTrackId);
+        
         if (userTrack is null)
             return NotFound("Track not found.");
 
         userTrack.Rating = ratingEnum;
         userTrack.RatedAtUtc = DateTime.UtcNow;
+
         await _userTrackRepository.UpdateAsync(userTrack);
 
         return Ok(new
@@ -152,13 +174,5 @@ public class HomeController : Controller
     {
         TempData["HideLayout"] = "true";
         return View();
-    }
-
-    private static List<Track> GetShuffledUnratedTracks(List<Track> liveTracks, List<UserTrack> userTracks)
-    {
-        return liveTracks
-            .Where(lt => !userTracks.Any(ut => ut.Track.SpotifyTrackId == lt.SpotifyTrackId && ut.Rating != null))
-            .OrderBy(r => Guid.NewGuid())
-            .ToList();
     }
 }

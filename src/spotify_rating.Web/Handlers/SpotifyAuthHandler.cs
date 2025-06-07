@@ -9,9 +9,7 @@ public class SpotifyAuthHandler : DelegatingHandler
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly ILogger<SpotifyAuthHandler> _logger;
 
-    public SpotifyAuthHandler(
-        IHttpContextAccessor httpContextAccessor,
-        ILogger<SpotifyAuthHandler> logger)
+    public SpotifyAuthHandler(IHttpContextAccessor httpContextAccessor, ILogger<SpotifyAuthHandler> logger)
     {
         _httpContextAccessor = httpContextAccessor;
         _logger = logger;

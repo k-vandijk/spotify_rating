@@ -5,8 +5,9 @@ using Microsoft.EntityFrameworkCore;
 using spotify_rating.Data.Entities;
 using spotify_rating.Data.Repositories;
 using spotify_rating.Services;
-using System.Security.Claims;
 using spotify_rating.Web.ViewModels;
+using System.Security.Claims;
+using spotify_rating.Data.Dtos;
 
 namespace spotify_rating.Web.Controllers;
 
@@ -35,15 +36,15 @@ public class RecommendationsController : Controller
     [HttpGet("/recommendations")]
     public async Task<IActionResult> Index()
     {
-        var userTracks = _userTrackRepository.GetQueryable()
+        var userTracks = await _userTrackRepository.GetQueryable()
             .Include(ut => ut.Track)
             .Where(ut => ut.IsAiSuggestion && !ut.IsDismissed)
-            .ToList();
+            .ToListAsync();
 
-        var userPlaylists = _userPlaylistRepository.GetQueryable()
+        var userPlaylists = await _userPlaylistRepository.GetQueryable()
             .Include(up => up.Playlist)
             .Where(up => up.IsAiSuggestion && !up.IsDismissed)
-            .ToList();
+            .ToListAsync();
 
         return View(new RecommendationsViewModel
         {
@@ -60,8 +61,13 @@ public class RecommendationsController : Controller
         if (playlist == null)
             return NotFound("Playlist not found.");
 
-        var playlistTracks = await _playlistTrackRepository.GetQueryable().Include(pt => pt.Track)
-            .Where(pt => pt.PlaylistId == playlist.Id).ToListAsync();
+        var playlistTracks = await _playlistTrackRepository.GetQueryable()
+            .Include(pt => pt.Track)
+            .Where(pt => pt.PlaylistId == playlist.Id)
+            .ToListAsync();
+
+        if (playlistTracks == null || !playlistTracks.Any())
+            return NotFound("No tracks found in this playlist.");
 
         return View(new PlaylistViewModel
         {
@@ -84,27 +90,16 @@ public class RecommendationsController : Controller
             return Unauthorized("Spotify user ID is missing.");
 
         var userTracks = await _userTrackRepository.GetAllAsync();
-
         string jsonSchema = System.IO.File.ReadAllText("Schemas/aiTrackDto.json");
-
         var completion = await _openaiService.GetAiTrackAsync(jsonSchema, userTracks.ToList());
-
-        Track track = await _spotifyService.GetTrackByTitleAndArtistAsync(accessToken, completion.Title, completion.Artist, completion.Genre);
+        
+        Track? track = await _spotifyService.GetTrackByTitleAndArtistAsync(accessToken, completion.Title, completion.Artist, completion.Genre);
 
         if (track == null)
             return NotFound("No track found matching the AI recommendation.");
 
-        var existingTrack = await _trackRepository.GetQueryable().FirstOrDefaultAsync(t => t.SpotifyTrackId == track.SpotifyTrackId);
-        if (existingTrack != null)
-        {
-            track = existingTrack;
-            track.AiGenre = completion.Genre;
-            await _trackRepository.UpdateAsync(track);
-        }
-        else
-        {
-            await _trackRepository.AddAsync(track);
-        }
+        // Persist the track to get an id
+        track = await PersistTrackAsync(track, completion.Genre);
 
         await _userTrackRepository.AddAsync(new UserTrack
         {
@@ -124,15 +119,13 @@ public class RecommendationsController : Controller
         if (string.IsNullOrEmpty(accessToken))
             return Unauthorized("Access token is missing.");
 
-        string? spotifyUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var spotifyUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         if (string.IsNullOrEmpty(spotifyUserId))
             return Unauthorized("Spotify user ID is missing.");
 
         var userTracks = await _userTrackRepository.GetAllAsync();
-
-        string jsonSchema = System.IO.File.ReadAllText("Schemas/aiPlaylistDto.json");
-
+        var jsonSchema = await System.IO.File.ReadAllTextAsync("Schemas/aiPlaylistDto.json");
         var completion = await _openaiService.GetAiPlaylistAsync(jsonSchema, userTracks.ToList());
 
         var playlist = new Playlist
@@ -142,37 +135,10 @@ public class RecommendationsController : Controller
             Genre = completion.Genre
         };
 
+        // Create playlist
         await _playlistRepository.AddAsync(playlist);
 
-        foreach (var track in completion.Tracks)
-        {
-            var spotifyTrack = await _spotifyService.GetTrackByTitleAndArtistAsync(accessToken, track.Title, track.Artist, track.Genre);
-
-            if (spotifyTrack != null)
-            {
-                var existingTrack = await _trackRepository.GetQueryable().FirstOrDefaultAsync(t => t.SpotifyTrackId == spotifyTrack.SpotifyTrackId);
-
-                if (existingTrack != null)
-                {
-                    existingTrack.AiGenre = spotifyTrack.AiGenre;
-                    await _trackRepository.UpdateAsync(existingTrack);
-                    spotifyTrack = existingTrack;
-                }
-                else
-                {
-                    await _trackRepository.AddAsync(spotifyTrack);
-                }
-
-                var playlistTrack = new PlaylistTrack
-                {
-                    PlaylistId = playlist.Id,
-                    TrackId = spotifyTrack.Id
-                };
-
-                await _playlistTrackRepository.AddAsync(playlistTrack);
-            }
-        }
-
+        // Associate playlist with user
         await _userPlaylistRepository.AddAsync(new UserPlaylist
         {
             SpotifyUserId = spotifyUserId,
@@ -180,7 +146,46 @@ public class RecommendationsController : Controller
             IsAiSuggestion = true
         });
 
+        // Populate playlist with tracks
+        foreach (var track in completion.Tracks)
+        {
+           await PersistPlaylistTrackAsync(accessToken, track, playlist.Id);
+        }
+
         return Ok(playlist);
+    }
+
+    private async Task PersistPlaylistTrackAsync(string accessToken, AiTrackDto track, Guid playlistId)
+    {
+        var spotifyTrack = await _spotifyService.GetTrackByTitleAndArtistAsync(accessToken, track.Title, track.Artist, track.Genre);
+
+        if (spotifyTrack == null) return;
+
+        spotifyTrack = await PersistTrackAsync(spotifyTrack, track.Genre);
+
+        var playlistTrack = new PlaylistTrack
+        {
+            PlaylistId = playlistId,
+            TrackId = spotifyTrack.Id
+        };
+
+        await _playlistTrackRepository.AddAsync(playlistTrack);
+    }
+
+    private async Task<Track> PersistTrackAsync(Track track, string aiGenre)
+    {
+        var existingTrack = await _trackRepository.GetQueryable().FirstOrDefaultAsync(t => t.SpotifyTrackId == track.SpotifyTrackId);
+
+        if (existingTrack != null)
+        {
+            track = existingTrack;
+            track.AiGenre = aiGenre;
+            await _trackRepository.UpdateAsync(track);
+            return track;
+        }
+        
+        await _trackRepository.AddAsync(track);
+        return track;
     }
 
     [HttpPost("/api/recommendations/render-track")]
@@ -218,7 +223,7 @@ public class RecommendationsController : Controller
     [HttpGet("/api/recommendations/like")]
     public async Task<IActionResult> LikeRecommendation(string track)
     {
-        // TODO Like on spotify
+        // TODO Like on spotify, and dismiss song
 
         return RedirectToAction(nameof(Index));
     }
@@ -239,6 +244,7 @@ public class RecommendationsController : Controller
 
         userTrack.IsDismissed = true;
         userTrack.DismissedAtUtc = DateTime.UtcNow;
+
         await _userTrackRepository.UpdateAsync(userTrack);
         return RedirectToAction(nameof(Index));
     }
